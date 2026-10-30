@@ -32,3 +32,6 @@ promo-video/
 # 渲染 / 部署临时日志
 _render.log
 _still.log
+# Pages 直传部署的临时目录与日志（tools/deploy_pages.sh 每次重建）
+_deploy/
+_deploy.log
