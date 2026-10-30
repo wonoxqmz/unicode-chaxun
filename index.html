@@ -3475,7 +3475,7 @@ const WORD_DICT = (function () {
 
 
 // ===== 应用版本 =====
-const APP_VERSION = '0.2.8';
+const APP_VERSION = '0.2.9';
 const APP_UNICODE_VERSION = '17.0';   // 内置区块数据版本
 
 // 更新检查用的版本清单（静态 JSON，由 Cloudflare Pages 托管，仓库根目录 version.json）
@@ -10052,7 +10052,7 @@ function renderQuickDl() {
   // flex:0 0 auto + nowrap：窄屏上不能被旁边的按钮挤压换行，否则文字会被挤没只剩图标
   box.style.display = 'flex';
   box.innerHTML = '<a class="file-upload-btn" href="' + escapeHtml(dl) + '" target="_blank" rel="noopener" style="text-decoration:none;flex:0 0 auto;white-space:nowrap">' + ic('download') + downloadLabel(appPlatform()).replace(/^⬇️\s*/, '') + '</a>'
-    + '<a class="toggle-btn" href="' + escapeHtml(rel) + '" target="_blank" rel="noopener" style="text-decoration:none;flex:0 0 auto;white-space:nowrap">' + ic('link') + 'GitHub 发布页</a>';
+    + '<a class="toggle-btn" href="' + escapeHtml(rel) + '" target="_blank" rel="noopener" style="text-decoration:none;flex:0 0 auto;white-space:nowrap">' + ic('link') + 'Gitee 发布页</a>';
 }
 
 // manual=true：用户点的，任何结果都写到设置面板那行状态里；
@@ -10181,7 +10181,7 @@ function openUpdateDialog() {
   }
 
   body += '<p style="margin-top:10px;font-size:11px;color:var(--muted);line-height:1.7;word-break:break-all">'
-    + '打不开下载按钮？去 GitHub 发布页手动下载：<a href="' + escapeHtml(rel) + '" target="_blank" rel="noopener" style="color:var(--accent)">' + escapeHtml(rel.replace(/^https?:\/\//i, '')) + '</a></p>';
+    + '打不开下载按钮？去 Gitee 发布页手动下载：<a href="' + escapeHtml(rel) + '" target="_blank" rel="noopener" style="color:var(--accent)">' + escapeHtml(rel.replace(/^https?:\/\//i, '')) + '</a></p>';
 
   let footer = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">'
     + '<a class="file-upload-btn" href="' + escapeHtml(dl) + '" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">' + downloadLabel(p) + '</a>'
@@ -10243,7 +10243,7 @@ function closeSettings() {
 // 每个区块收成一行标题，点标题展开；状态按区块标题记在 localStorage，
 // 下次打开还是你上次的展开习惯。默认全部收起——一屏就能看全所有设置。
 const SETTINGS_FOLD_STORE = 'unicode_settings_fold';
-const RELEASE_PAGE_URL = 'https://github.com/longchangjin2-arch/Unicode-chaxun/releases';
+const RELEASE_PAGE_URL = 'https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases';
 const RELEASE_LATEST_URL = RELEASE_PAGE_URL + '/latest';
 let _settingsFold = null;
 function settingsFoldCfg() {
@@ -10663,11 +10663,11 @@ function renderSettingsBody() {
       <h3>${ic('chat')}反馈与联系</h3>
       <p>有任何问题或建议，欢迎通过以下方式联系我：</p>
       <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
-        <a href="https://github.com/longchangjin2-arch/Unicode-chaxun" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg);border-radius:8px;text-decoration:none;color:inherit;transition:background 0.2s">
+        <a href="https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg);border-radius:8px;text-decoration:none;color:inherit;transition:background 0.2s">
           <span style="font-size:24px">${ic('link','lg')}</span>
           <div>
-            <div style="font-weight:bold">GitHub 仓库</div>
-            <div style="font-size:12px;color:var(--muted)">github.com/longchangjin2-arch/Unicode-chaxun</div>
+            <div style="font-weight:bold">Gitee 仓库</div>
+            <div style="font-size:12px;color:var(--muted)">gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun</div>
           </div>
         </a>
         <a href="mailto:3772387377@qq.com" style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg);border-radius:8px;text-decoration:none;color:inherit;transition:background 0.2s">
@@ -10700,8 +10700,8 @@ function renderSettingsBody() {
         <div class="${_us.cls}" id="updateStatus" style="margin-top:8px">${escapeHtml(_us.txt)}</div>
         <div id="updateQuickDl" style="display:none;gap:8px;flex-wrap:wrap;margin-top:10px"></div>
         <div style="margin-top:10px;padding-top:8px;border-top:1px dashed var(--border);font-size:11px;color:var(--muted);line-height:1.8;word-break:break-all">
-          ${ic('link')}最新版随时可以手动下载（GitHub 发布页）：<br>
-          <a href="${RELEASE_LATEST_URL}" target="_blank" rel="noopener">github.com/longchangjin2-arch/Unicode-chaxun/releases/latest</a>
+          ${ic('link')}最新版随时可以手动下载（Gitee 发布页）：<br>
+          <a href="${RELEASE_LATEST_URL}" target="_blank" rel="noopener">gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases</a>
         </div>
         <button class="set-switch${updateCfg.auto ? ' on' : ''}" id="updateAutoSwitch" onclick="toggleAutoUpdate()" style="margin-top:10px">
           <span class="track"><span class="thumb"></span></span>
@@ -10714,7 +10714,12 @@ function renderSettingsBody() {
       <details style="margin-top:10px">
         <summary style="cursor:pointer;font-size:13px;font-weight:600;user-select:none">${ic('log')}更新日志</summary>
         <div class="app-changelog">
-          <h4>v0.2.8 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <h4>v0.2.9 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <ul>
+            <li><b>仓库搬到 Gitee</b>：代码托管从 GitHub 迁到 Gitee（github.com 账号还在申诉封禁中），应用里「设置 → 反馈与联系」的仓库入口、更新提示里的发布页按钮、下载弹窗的兜底链接、关于本工具的常驻地址，全部指向新仓库</li>
+            <li>下载链接改为 Gitee 发行版，不再依赖 GitHub；功能与 v0.2.8 完全一致，无其它改动</li>
+          </ul>
+          <h4 style="margin-top:10px">v0.2.8</h4>
           <ul>
             <li><b>「存进自定义释义」按钮不再到处都是</b>：之前只要回答里出现码点就挂按钮，AI 自己都说「不确定」的也挂——现在只有 AI 给出了确定的释义小结（或在详情页里解读具体字符）时才显示；提示词同步收紧，AI 没把握就不写小结、不问存不存</li>
           </ul>

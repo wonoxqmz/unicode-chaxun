@@ -1,11 +1,11 @@
 {
-  "latest": "0.2.8",
-  "date": "2026-10-25",
-  "notes": "「存进自定义释义」按钮收敛：只在 AI 给出确定释义小结（或详情页解读具体字符）时显示，AI 不确定时不再硬写小结；v0.2.7 新增 AI 解释一键存释义。",
+  "latest": "0.2.9",
+  "date": "2026-10-30",
+  "notes": "仓库搬到 Gitee：应用内仓库入口、更新发布页按钮、兜底下载链接全部改指新仓库；下载改走 Gitee 发行版。功能与 v0.2.8 一致。",
   "downloads": {
     "web": "https://unchaxun.pages.dev/",
-    "apk": "https://github.com/longchangjin2-arch/Unicode-chaxun/releases/download/v0.2.8/unicode-chaxun-v0.2.8.apk",
-    "exe": "https://github.com/longchangjin2-arch/Unicode-chaxun/releases/download/v0.2.8/unicode-chaxun-v0.2.8.exe"
+    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.9/unicode-chaxun-v0.2.9.apk",
+    "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"
   },
-  "release": "https://github.com/longchangjin2-arch/Unicode-chaxun/releases"
+  "release": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"
 }

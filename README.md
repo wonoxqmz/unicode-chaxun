@@ -2,9 +2,9 @@
 
 一个功能丰富的 Unicode 字符查询与浏览工具，纯前端单页应用，无需后端服务，开箱即用。
 
-当前版本：**v0.2.8**（更新日志见 README 底部，或打开应用「设置 → 关于本工具」查看）
+当前版本：**v0.2.9**（更新日志见 README 底部，或打开应用「设置 → 关于本工具」查看）
 
-GitHub：[longchangjin2-arch/Unicode-chaxun](https://github.com/longchangjin2-arch/Unicode-chaxun)
+Gitee：[i-dont-want-to-pick-a-name/unicode-chaxun](https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun)
 
 基于 **Unicode 17.0** 标准，内置全部 346 个区块定义。
 
@@ -419,7 +419,16 @@ build.bat clean      清掉旧产物重新打
 
 ## 更新日志
 
-### v0.2.8（最新）
+### v0.2.9（最新）
+
+**代码搬到 Gitee**
+
+- 宿主从 GitHub 迁到 Gitee（GitHub 账号仍在申诉封禁中，仓库暂不可写）
+- 应用内所有仓库/发布页/下载入口改指 Gitee：设置 → 反馈与联系、更新提示条、下载弹窗兜底链接、关于本工具的常驻地址
+- `version.json` 的 apk / release 改为 Gitee 发行版地址，不再依赖 GitHub
+- 功能与 v0.2.8 完全一致，无其它改动
+
+### v0.2.8
 
 **「存进自定义释义」按钮收敛**
 
