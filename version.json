@@ -1,0 +1,11 @@
+{
+  "latest": "0.2.8",
+  "date": "2026-10-25",
+  "notes": "「存进自定义释义」按钮收敛：只在 AI 给出确定释义小结（或详情页解读具体字符）时显示，AI 不确定时不再硬写小结；v0.2.7 新增 AI 解释一键存释义。",
+  "downloads": {
+    "web": "https://unchaxun.pages.dev/",
+    "apk": "https://github.com/longchangjin2-arch/Unicode-chaxun/releases/download/v0.2.8/unicode-chaxun-v0.2.8.apk",
+    "exe": "https://github.com/longchangjin2-arch/Unicode-chaxun/releases/download/v0.2.8/unicode-chaxun-v0.2.8.exe"
+  },
+  "release": "https://github.com/longchangjin2-arch/Unicode-chaxun/releases"
+}

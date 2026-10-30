@@ -1,0 +1,16 @@
+# Cloudflare Pages 响应头
+# version.json 允许跨域：桌面版跑在 127.0.0.1、安卓版跑在 file://，
+# 都要能从 https://unchaxun.pages.dev 读这个文件
+/version.json
+  Access-Control-Allow-Origin: *
+  Content-Type: application/json; charset=utf-8
+  Cache-Control: no-cache
+
+# 主页面每次都要回源验证一遍，避免用户长期吃缓存看不到新版
+/index.html
+  Cache-Control: no-cache
+
+# UCD 数据文件：「一键在线获取」在安卓 APK（file://，Origin 为 null）和
+# 桌面版（127.0.0.1）里都要跨域读这几个文件，没有这头会直接被浏览器拦下
+/unicode_data/*
+  Access-Control-Allow-Origin: *

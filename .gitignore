@@ -1,0 +1,34 @@
+# 打包产物（20MB 级别的 exe / apk，不进仓库，用 build.bat 现打）
+dist/
+*.apk
+*.exe
+
+# desktop/ 里的 index.html 是 pack.py 从根目录复制过来的副本，根目录那份才是源
+desktop/index.html
+
+# Python / 打包缓存
+__pycache__/
+*.pyc
+desktop/build/
+desktop/*.spec
+
+# android 构建产物与本地副本
+android/build/
+android/assets/index.html
+android/keystore/
+
+# 项目级个人数据备份（不属于代码）
+LCJ的Unicode编码数据.json
+
+# 本地测试脚本（下划线开头 = 内部用，不进仓库）
+_test_*.js
+
+# v0.2.5 扩展区字体包（几 MB 的二进制，不进 git；APK 打包本地现打，网页版由部署脚本单独上传）
+fonts/
+
+# 宣传视频工程（Remotion，node_modules 就 700MB+，源码和成片都在本地）
+promo-video/
+
+# 渲染 / 部署临时日志
+_render.log
+_still.log
