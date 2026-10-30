@@ -1,10 +1,10 @@
 {
-  "latest": "0.2.11",
-  "date": "2026-10-30",
-  "notes": "AI 生僻字回答修复：字形拉取结果直接告知模型（不怪网络/不重复引导），「不确定」只说一次；v0.2.10 禁用双指缩放。",
+  "latest": "0.2.12",
+  "date": "2026-10-31",
+  "notes": "体验修复：原生 confirm/prompt 全部换成应用内弹窗（不再显示「网址为file://」抬头）；滑动切栏目后顶栏标签自动滚回可视区；设置面板每次打开全部收起；设置里弹出的更新弹窗不再被压到设置后面；字符对比页不再自动弹键盘；更新区发布页链接与下载按钮不再撞色。",
   "downloads": {
     "web": "https://unchaxun.pages.dev/",
-    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.11/unicode-chaxun-v0.2.11.apk",
+    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.12/unicode-chaxun-v0.2.12.apk",
     "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"
   },
   "release": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"

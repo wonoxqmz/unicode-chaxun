@@ -1792,6 +1792,25 @@ body.dark .ai-err { color: #ef9a9a; }
   </div>
 </div>
 
+<!-- 自定义确认/输入弹窗（v0.2.12）：替代原生 confirm/prompt。
+     file:// 下原生弹窗顶着「网址为"file://"的网页显示」的抬头，又丑又吓人；
+     这里用应用内弹窗，样式和设置/详情弹窗一致。z-index 400 盖过设置(200)/更新条(320)/toast(300)。 -->
+<div class="modal-overlay" id="confirmOverlay" style="z-index:400" onmousedown="overlayPressOn(this, event)" onclick="overlayClickMaybe(this, event, cancelConfirmOverlay)">
+  <div class="modal" style="width:380px;max-width:88vw">
+    <div class="modal-header" style="padding-top:22px">
+      <div class="name" id="confirmTitle" style="font-size:16px">确认操作</div>
+    </div>
+    <div class="modal-body" id="confirmMsg" style="text-align:center;font-size:13px;line-height:1.9;white-space:pre-line"></div>
+    <div id="confirmInputRow" style="display:none;padding:0 24px 4px">
+      <input type="text" id="confirmInput" style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:14px">
+    </div>
+    <div style="display:flex;gap:10px;padding:14px 24px 20px">
+      <button id="confirmCancelBtn" onclick="finishConfirm(false)" style="flex:1;padding:9px 0;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;font-size:13px">取消</button>
+      <button id="confirmOkBtn" onclick="finishConfirm(true)" class="file-upload-btn" style="flex:1;padding:9px 0;font-size:13px;border-radius:8px;border:none">确定</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -3475,7 +3494,7 @@ const WORD_DICT = (function () {
 
 
 // ===== 应用版本 =====
-const APP_VERSION = '0.2.11';
+const APP_VERSION = '0.2.12';
 const APP_UNICODE_VERSION = '17.0';   // 内置区块数据版本
 
 // 更新检查用的版本清单（静态 JSON，由 Cloudflare Pages 托管，仓库根目录 version.json）
@@ -3618,10 +3637,10 @@ function addToHistory(cp) {
   saveHistory();
 }
 
-function clearHistory() {
+async function clearHistory() {
   if (!history.length) { showToast('还没有浏览记录'); return; }
   const n = history.length;
-  if (!confirm(`确定清除全部 ${n} 条浏览记录？此操作不可撤销。`)) return;
+  if (!(await uiConfirm(`确定清除全部 ${n} 条浏览记录？\n此操作不可撤销。`, { danger: true }))) return;
   history = [];
   saveHistory();
   addLog('清除记录', `浏览记录 ${n} 条`);
@@ -3646,11 +3665,12 @@ function addLog(action, detail) {
   try { localStorage.setItem('unicode_logs', JSON.stringify(appLogs)); } catch(e) {}
 }
 
-function clearLogs() {
+async function clearLogs() {
   if (!appLogs.length) { showToast('暂无日志'); return; }
-  if (!confirm(`确定清空全部 ${appLogs.length} 条操作日志？此操作不可撤销。`)) return;
+  if (!(await uiConfirm(`确定清空全部 ${appLogs.length} 条操作日志？\n此操作不可撤销。`, { danger: true }))) return;
   appLogs = [];
   try { localStorage.removeItem('unicode_logs'); } catch(e) {}
+  renderLogsInSettings();  // v0.2.12：本函数改 async 后，外联的 onclick 里同步跟着调的刷新会跑在确认之前，挪进来
   showToast('日志已清除');
 }
 
@@ -3691,9 +3711,9 @@ function createFavCategory(name) {
   return true;
 }
 
-function deleteFavCategory(name) {
+async function deleteFavCategory(name) {
   if (!favCategories[name]) return false;
-  if (!confirm(`确定删除分类"${name}"？该分类下的字符不会被取消收藏。`)) return false;
+  if (!(await uiConfirm(`确定删除分类"${name}"？\n该分类下的字符不会被取消收藏。`, { danger: true }))) return false;
   delete favCategories[name];
   saveFavCategories();
   addLog('删除分类', name);
@@ -4141,7 +4161,7 @@ async function installFont(file) {
 }
 
 async function removeFont(name) {
-  if (!confirm(`确定卸载字体「${name}」？`)) return;
+  if (!(await uiConfirm(`确定卸载字体「${name}」？`, { danger: true }))) return;
   await idbDel('fontData_' + name);
   customFonts = customFonts.filter(f => f.name !== name);
   await idbSet('customFonts', customFonts);
@@ -4417,9 +4437,9 @@ async function fetchOnlineUCD() {
 
 // --- 恢复内置数据 ---
 async function resetUnicodeData() {
-  const step1 = confirm('⚠️ 确定恢复内置数据？\n\n已下载/上传的 Unicode 数据将被清除。\n\n（个人数据不受影响：收藏、自定义字义、字典、浏览记录等均会保留）');
+  const step1 = await uiConfirm('⚠️ 确定恢复内置数据？\n\n已下载/上传的 Unicode 数据将被清除。\n\n（个人数据不受影响：收藏、自定义字义、字典、浏览记录等均会保留）', { danger: true, okText: '继续' });
   if (!step1) return;
-  const step2 = confirm('❗ 二次确认\n\n此操作仅清除 Unicode 字符数据，不会删除个人数据。确定继续吗？');
+  const step2 = await uiConfirm('❗ 二次确认\n\n此操作仅清除 Unicode 字符数据，不会删除个人数据。确定继续吗？', { danger: true, okText: '恢复内置数据' });
   if (!step2) return;
   await idbDel('unicodeData');
   unicodeData = {
@@ -4439,9 +4459,9 @@ async function resetUnicodeData() {
 
 // 清空所有个人数据（收藏/字义/浏览记录/最近搜索）
 async function clearAllUserData() {
-  const step1 = confirm('⚠️ 确定清空所有个人数据？\n\n将清除以下内容：\n• 我的收藏\n• 自定义字义\n• 自定义字典\n• 收藏分类\n• 浏览记录\n• 最近搜索\n• 操作日志');
+  const step1 = await uiConfirm('⚠️ 确定清空所有个人数据？\n\n将清除以下内容：\n• 我的收藏\n• 自定义字义\n• 自定义字典\n• 收藏分类\n• 浏览记录\n• 最近搜索\n• 操作日志', { danger: true, okText: '继续' });
   if (!step1) return;
-  const step2 = confirm('❗ 二次确认\n\n此操作不可撤销，所有个人数据将永久丢失！\n\n如需保留，请先在设置中"导出个人数据"备份。\n\n确定继续吗？');
+  const step2 = await uiConfirm('❗ 二次确认\n\n此操作不可撤销，所有个人数据将永久丢失！\n\n如需保留，请先在设置中"导出个人数据"备份。\n\n确定继续吗？', { danger: true, okText: '全部清空' });
   if (!step2) return;
   favorites.clear();
   customMeanings = {};
@@ -4497,7 +4517,7 @@ function downloadExportFile(json, filename) {
 }
 
 // 导出个人数据 - 下载（传统方式）
-function exportUserData() {
+async function exportUserData() {
   const data = buildExportData();
   const json = JSON.stringify(data, null, 2);
   const ts = new Date().toISOString().slice(0,10);
@@ -4506,7 +4526,7 @@ function exportUserData() {
   // 检查是否支持 File System Access API
   if (window.showSaveFilePicker) {
     // 支持另存为
-    if (!confirm('是否使用「另存为」方式保存到指定位置？\n\n点「确定」→ 选择保存位置\n点「取消」→ 使用默认下载')) {
+    if (!(await uiConfirm('是否使用「另存为」方式保存到指定位置？\n\n点「确定」→ 选择保存位置\n点「取消」→ 使用默认下载', { okText: '另存为', cancelText: '直接下载' }))) {
       downloadExportFile(json, filename);
       showToast('已导出个人数据');
       addLog('导出数据（下载）', `收藏${favorites.size}项, 字义${Object.keys(customMeanings).length}条, 字典${Object.keys(customWordDict).length}条, 分类${Object.keys(favCategories).length}个`);
@@ -4570,7 +4590,7 @@ function importUserData(event) {
   const file = event.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = e => {
+  reader.onload = async e => {
     try {
       const data = JSON.parse(e.target.result);
       if (data._type !== 'unicode-app-user-data') {
@@ -4580,14 +4600,14 @@ function importUserData(event) {
       // 预览里的「项数」只对数组取值，避免 favorites 被写成字符串时拿字符数冒充条数
       const cnt = v => Array.isArray(v) ? v.length : 0;
       const objCnt = v => (v && typeof v === 'object' && !Array.isArray(v)) ? Object.keys(v).length : 0;
-      const ok = confirm('即将导入个人数据：文件中包含的每一项都会【替换】当前对应数据（文件里没有的项保持不动）。\n\n导入内容：\n'
+      const ok = await uiConfirm('即将导入个人数据：文件中包含的每一项都会【替换】当前对应数据（文件里没有的项保持不动）。\n\n导入内容：\n'
         + `• 收藏: ${cnt(data.favorites)} 项\n`
         + `• 自定义字义: ${objCnt(data.customMeanings)} 条\n`
         + `• 自定义字典: ${objCnt(data.customWordDict)} 条\n`
         + `• 收藏分类: ${objCnt(data.favCategories)} 个\n`
         + `• 浏览记录: ${cnt(data.history)} 条\n`
         + `• 最近搜索: ${cnt(data.recentSearches)} 条\n\n`
-        + '确定继续？');
+        + '确定继续？', { okText: '导入' });
       if (!ok) { event.target.value = ''; return; }
 
       // D5/D6：逐段替换，且每段都做结构校验——坏结构（如 favCategories 的值不是数组）
@@ -5357,6 +5377,21 @@ function setActiveNav(view) {
   document.querySelectorAll('.nav-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.view === view);
   });
+  // v0.2.12：手机端顶栏是横向滚动条，滑动切栏目后选中的 tab 可能跑出屏幕外，
+  // 把它平滑滚回可视区中央（桌面端侧边栏是竖排且无横向溢出，条件不满足直接跳过）
+  try {
+    const sb = document.getElementById('sidebar');
+    const act = document.querySelector('.nav-btn.active');
+    if (sb && act && sb.scrollWidth > sb.clientWidth + 4) {
+      const target = Math.max(0, act.offsetLeft - (sb.clientWidth - act.offsetWidth) / 2);
+      if (typeof sb.scrollTo === 'function') {
+        try { sb.scrollTo({ left: target, behavior: 'smooth' }); }
+        catch (e2) { sb.scrollLeft = target; }
+      } else {
+        sb.scrollLeft = target;
+      }
+    }
+  } catch (e) {}
   // 触发视图切换动画
   const scroll = document.getElementById('contentScroll');
   if (scroll) {
@@ -5447,7 +5482,7 @@ function swipeInScrollX(el) {
 function initSwipeNav() {
   let sx = 0, sy = 0, st = 0, active = false, locked = false;
   function overlayOpen() {
-    return ['settingsOverlay', 'modalOverlay', 'zoomOverlay'].some(function (id) {
+    return ['settingsOverlay', 'modalOverlay', 'zoomOverlay', 'confirmOverlay'].some(function (id) {
       const el = document.getElementById(id);
       return el && el.classList.contains('show');
     });
@@ -6849,8 +6884,8 @@ function manageCreateCategory() {
   }
 }
 
-function manageRenameCategory(oldName) {
-  const newName = prompt('请输入新名称：', oldName);
+async function manageRenameCategory(oldName) {
+  const newName = await uiPrompt('重命名分类', '请输入新名称：', oldName);
   if (!newName) return;
   if (renameFavCategory(oldName, newName)) {
     openManageCategories();
@@ -6860,8 +6895,8 @@ function manageRenameCategory(oldName) {
   }
 }
 
-function manageDeleteCategory(name) {
-  if (deleteFavCategory(name)) {
+async function manageDeleteCategory(name) {
+  if (await deleteFavCategory(name)) {
     openManageCategories();
     if (favCategoryMode === `category:${encodeURIComponent(name)}`) {
       favCategoryMode = 'categories';
@@ -7317,7 +7352,7 @@ function showCompare() {
       <div id="cmpResult"></div>
     </div>
   `;
-  document.getElementById('cmpA').focus();
+  // v0.2.12：不再自动 focus——一进页面键盘就弹出来挡住半屏，太烦；想输入自己点输入框
   document.getElementById('cmpA').addEventListener('keydown', e=>{ if(e.key==='Enter') doCompare(); });
   document.getElementById('cmpB').addEventListener('keydown', e=>{ if(e.key==='Enter') doCompare(); });
 }
@@ -8247,7 +8282,71 @@ function showModal(title, bodyHTML, footerHTML, buttons) {
     footer += '</div>';
   }
   document.getElementById('modalFooter').innerHTML = footer;
-  document.getElementById('modalOverlay').classList.add('show');
+  const _mo = document.getElementById('modalOverlay');
+  // v0.2.12：设置面板开着时弹出的窗（更新弹窗、导入确认等）要盖在设置上面——
+  // 两者同为 z-index:200，而 settingsOverlay 在 DOM 里靠后，不抬高就会被压在设置后面
+  try {
+    const _so = document.getElementById('settingsOverlay');
+    if (_so && _so.classList.contains('show')) _mo.style.zIndex = 240;
+  } catch (e) {}
+  _mo.classList.add('show');
+}
+
+// ============================================================
+// 自定义确认/输入弹窗（v0.2.12）——替代原生 confirm() / prompt()
+// file:// 环境下原生弹窗会显示「网址为"file://"的网页显示」抬头，观感极差；
+// 且无法自定义按钮文字。这里统一走应用内弹窗：
+//   uiConfirm(msg, opts) → Promise<boolean>
+//   uiPrompt(title, msg, defVal) → Promise<string|null>（取消返回 null）
+// 用法：把宿主函数改成 async，然后 if (!(await uiConfirm(...))) return;
+// ============================================================
+let _confirmResolve = null;
+let _confirmKind = 'confirm'; // 'confirm' | 'prompt'
+function _confirmKeyHandler(e) {
+  if (e.key === 'Escape') { e.preventDefault(); finishConfirm(false); }
+  else if (e.key === 'Enter') { e.preventDefault(); finishConfirm(true); }
+}
+function _openConfirmOverlay() {
+  document.getElementById('confirmOverlay').classList.add('show');
+  document.addEventListener('keydown', _confirmKeyHandler);
+}
+function cancelConfirmOverlay() { finishConfirm(false); }
+function finishConfirm(ok) {
+  const ov = document.getElementById('confirmOverlay');
+  if (!ov || !ov.classList.contains('show')) return;
+  ov.classList.remove('show');
+  document.removeEventListener('keydown', _confirmKeyHandler);
+  const r = _confirmResolve;
+  _confirmResolve = null;
+  if (!r) return;
+  if (_confirmKind === 'prompt') r(ok ? document.getElementById('confirmInput').value : null);
+  else r(!!ok);
+}
+function uiConfirm(msg, opts) {
+  opts = opts || {};
+  _confirmKind = 'confirm';
+  document.getElementById('confirmTitle').textContent = opts.title || '确认操作';
+  document.getElementById('confirmMsg').textContent = msg;
+  document.getElementById('confirmInputRow').style.display = 'none';
+  document.getElementById('confirmOkBtn').textContent = opts.okText || '确定';
+  // 危险操作把确定键做成红色，视觉上多一道提醒
+  document.getElementById('confirmOkBtn').style.background = opts.danger ? '#e53935' : 'var(--accent)';
+  _openConfirmOverlay();
+  return new Promise(function (res) { _confirmResolve = res; });
+}
+function uiPrompt(title, msg, defVal) {
+  _confirmKind = 'prompt';
+  document.getElementById('confirmTitle').textContent = title || '请输入';
+  document.getElementById('confirmMsg').textContent = msg || '';
+  document.getElementById('confirmInputRow').style.display = 'block';
+  const inp = document.getElementById('confirmInput');
+  inp.value = defVal || '';
+  document.getElementById('confirmOkBtn').textContent = '确定';
+  document.getElementById('confirmOkBtn').style.background = 'var(--accent)';
+  _openConfirmOverlay();
+  // 输入型弹窗聚焦输入框并全选，方便直接改（这里是用户主动点按钮进来的，弹键盘是预期行为）
+  setTimeout(function () { try { inp.focus(); inp.select(); } catch (e) {} }, 60);
+  return new Promise(function (res) { _confirmResolve = res; });
 }
 function copyText(text) {
   const str = String(text);
@@ -8697,10 +8796,10 @@ function closeSyncPreview() {
   syncLastPayload = null;
 }
 
-function applySyncFromPreview(mode) {
+async function applySyncFromPreview(mode) {
   const payload = syncLastPayload;
   if (!payload) { closeSyncPreview(); return; }
-  if (mode === 'overwrite' && !confirm('完全覆盖会用对方的资料替换你本地同类数据，确定继续？\n（已自动备份，可撤销）')) return;
+  if (mode === 'overwrite' && !(await uiConfirm('完全覆盖会用对方的资料替换你本地同类数据，确定继续？\n（已自动备份，可撤销）', { danger: true, okText: '覆盖' }))) return;
   syncBackupNow();
   applySyncPayload(payload, mode);
   closeSyncPreview();
@@ -8733,12 +8832,12 @@ function syncBackupNow() {
   try { lsSet('unicode_sync_backup', { at: Date.now(), items: snapshot.items }); } catch (e) {}
 }
 
-function undoLastSync() {
+async function undoLastSync() {
   const backup = lsGet('unicode_sync_backup', null, function (v) {
     return !!(v && typeof v === 'object' && v.items && typeof v.items === 'object');
   });
   if (!backup || !backup.items) { showToast('没有可撤销的同步备份'); return; }
-  if (!confirm('用备份恢复到同步之前的状态？当前数据会被替换。')) return;
+  if (!(await uiConfirm('用备份恢复到同步之前的状态？当前数据会被替换。', { danger: true, okText: '恢复' }))) return;
   applySyncPayload({ app: 'unicode-chaxun', v: 1, at: Date.now(), items: backup.items }, 'overwrite');
   try { localStorage.removeItem('unicode_sync_backup'); } catch (e) {}
   syncRefreshCounts();
@@ -9428,9 +9527,9 @@ function aiPageRandom() {
   aiPageAsk('讲讲「' + ch + '」（' + hex + '）这个字符：怎么读、是什么意思、平时用在哪里');
 }
 
-function aiPageClear() {
+async function aiPageClear() {
   if (!aiPageMsgs.length) return;
-  if (!confirm('清空这次对话？')) return;
+  if (!(await uiConfirm('清空这次对话？', { danger: true, okText: '清空' }))) return;
   aiPageMsgs = [];
   aiChatSave();
   renderAIPage();
@@ -10065,8 +10164,10 @@ function renderQuickDl() {
   const rel = String(_updateInfo.release || RELEASE_PAGE_URL).trim();
   // flex:0 0 auto + nowrap：窄屏上不能被旁边的按钮挤压换行，否则文字会被挤没只剩图标
   box.style.display = 'flex';
+  // v0.2.12：发布页链接补上描边按钮样式——之前裸用 .toggle-btn 没有任何按钮外观，
+  // 呈现浏览器默认蓝链接，紧挨着蓝色的下载按钮，两个蓝色撞在一起分不清主次
   box.innerHTML = '<a class="file-upload-btn" href="' + escapeHtml(dl) + '" target="_blank" rel="noopener" style="text-decoration:none;flex:0 0 auto;white-space:nowrap">' + ic('download') + downloadLabel(appPlatform()).replace(/^⬇️\s*/, '') + '</a>'
-    + '<a class="toggle-btn" href="' + escapeHtml(rel) + '" target="_blank" rel="noopener" style="text-decoration:none;flex:0 0 auto;white-space:nowrap">' + ic('link') + 'Gitee 发布页</a>';
+    + '<a class="toggle-btn" href="' + escapeHtml(rel) + '" target="_blank" rel="noopener" style="text-decoration:none;flex:0 0 auto;white-space:nowrap;padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px">' + ic('link') + 'Gitee 发布页</a>';
 }
 
 // manual=true：用户点的，任何结果都写到设置面板那行状态里；
@@ -10242,6 +10343,9 @@ function scheduleUpdateCheck() {
 // ============================================================
 function showSettings() {
   renderSettingsBody();
+  // v0.2.12：每次打开都全部收起，不再恢复上次的展开状态（打开一长串太乱）
+  settingsFoldAll(false);
+  _settingsFold = {};
   document.getElementById('settingsOverlay').classList.add('show');
   // 每次打开都从顶部开始，不要停在上次翻滚的位置
   const body = document.getElementById('settingsBody');
@@ -10253,23 +10357,20 @@ function closeSettings() {
   if (currentView === 'ai') renderAIPage();
 }
 
-// ---- 设置面板折叠（v0.1.7）----
-// 每个区块收成一行标题，点标题展开；状态按区块标题记在 localStorage，
-// 下次打开还是你上次的展开习惯。默认全部收起——一屏就能看全所有设置。
-const SETTINGS_FOLD_STORE = 'unicode_settings_fold';
-const RELEASE_PAGE_URL = 'https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases';
-const RELEASE_LATEST_URL = RELEASE_PAGE_URL + '/latest';
-let _settingsFold = null;
+// ---- 设置面板折叠（v0.1.7，v0.2.12 改为每次打开全部收起）----
+// 每个区块收成一行标题，点标题展开；v0.2.12 起不再把展开状态写进 localStorage——
+// 之前是「记住上次的展开习惯」，结果变成一打开就是一长串展开的区块，得手动一个个收。
+// 现在每次打开面板都从全部收起开始（有结果要展示时 expandSecOf 仍会自动展开对应区块）。
+const SETTINGS_FOLD_STORE = 'unicode_settings_fold'; // 旧版本残留的键，v0.2.12 起不再读写
+let _settingsFold = {};
 function settingsFoldCfg() {
-  if (_settingsFold) return _settingsFold;
-  let saved = null;
-  try { saved = JSON.parse(localStorage.getItem(SETTINGS_FOLD_STORE) || 'null'); } catch (e) { saved = null; }
-  _settingsFold = (saved && typeof saved === 'object' && !Array.isArray(saved)) ? saved : {};
   return _settingsFold;
 }
 function saveSettingsFold() {
-  try { localStorage.setItem(SETTINGS_FOLD_STORE, JSON.stringify(settingsFoldCfg())); } catch (e) {}
+  // 不再持久化——保留空函数让调用点不用改
 }
+const RELEASE_PAGE_URL = 'https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases';
+const RELEASE_LATEST_URL = RELEASE_PAGE_URL + '/latest';
 // 渲染完设置内容后调用：把每个 .settings-section 里 h3 之后的内容包进 .sec-body，
 // 给 h3 加上箭头和点击事件，再按记忆决定谁展开
 function initSettingsFold(root) {
@@ -10428,13 +10529,12 @@ async function extFontInstall() {
     if (btn) { btn.disabled = false; btn.textContent = '下载并安装'; }
   }
 }
-function extFontRemove() {
-  if (!confirm('移除扩展区字体包？移除后扩展区字符恢复显示为方框。')) return;
-  idbDel(EXT_FONT_IDB).then(function () {
-    extFontLoaded = false;
-    showToast('已移除字体包，刷新页面后完全生效');
-    refreshSettingsDisplay();
-  });
+async function extFontRemove() {
+  if (!(await uiConfirm('移除扩展区字体包？\n移除后扩展区字符恢复显示为方框。', { danger: true, okText: '移除' }))) return;
+  await idbDel(EXT_FONT_IDB);
+  extFontLoaded = false;
+  showToast('已移除字体包，刷新页面后完全生效');
+  refreshSettingsDisplay();
 }
 function extFontStateText() {
   return extFontLoaded ? ('已安装（' + EXT_FONT_VERSION + '，扩展 B–J）') : '未安装';
@@ -10728,7 +10828,15 @@ function renderSettingsBody() {
       <details style="margin-top:10px">
         <summary style="cursor:pointer;font-size:13px;font-weight:600;user-select:none">${ic('log')}更新日志</summary>
         <div class="app-changelog">
-          <h4>v0.2.11 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <h4>v0.2.12 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <ul>
+            <li><b>原生弹窗全部下岗</b>：清空对话、清记录、删分类这些确认框以前用的是浏览器原生 confirm，顶着「网址为"file://"的网页显示」的抬头，又丑又吓人——现在全部换成应用内样式的确认弹窗，危险操作确定键是红色的，支持 Esc 取消 / Enter 确定；重命名分类的输入框也一并换掉</li>
+            <li><b>滑动切栏目后顶栏跟着走</b>：左右滑动切到后面的栏目时，选中的标签经常跑到屏幕外面看不到——现在会自动平滑滚回可视区中央</li>
+            <li><b>设置面板打开即全收起</b>：不再记住上次的展开状态，每次打开都是清爽的一行一个区块（有结果要展示的区块仍会自动展开）；面板开着时弹出的更新弹窗也不会再被压到设置后面</li>
+            <li><b>字符对比页不再自动弹键盘</b>：以前一进页面键盘就自己弹出来挡半屏，现在想输入自己点输入框</li>
+            <li><b>更新状态里的「Gitee 发布页」链接不再和下载按钮撞色</b>：从裸蓝链接改成描边按钮样式，主次分明</li>
+          </ul>
+          <h4 style="margin-top:10px">v0.2.11</h4>
           <ul>
             <li><b>AI 回答生僻字不再「弱智复读」</b>：联网字形拉取结果（哪些字没收录）现在会直接告诉模型——它不会再怪你网络、也不会让你一遍遍重试，而是直接下结论「这个字字形库暂未收录」，并把能确定的（码位、编码、区块）讲清楚，引导一次看「联网字形」就收住</li>
             <li>提示词同步收紧：「不确定」只说一次，禁止每轮复读「我记不准」</li>
@@ -11187,6 +11295,9 @@ applyTheme(lsGetRaw('unicode_theme', 'light') === 'dark');
 initSwipeNav();
 // 键盘左右箭头：在详情弹窗中切换前/后字符
 document.addEventListener('keydown', (e) => {
+  // v0.2.12：自定义确认弹窗层级最高，它开着时按键归它的处理器管（Esc=取消/Enter=确定），别穿透给下层
+  const cfm = document.getElementById('confirmOverlay');
+  if (cfm && cfm.classList.contains('show')) return;
   // 放大预览位于详情之上：优先处理它，且不把按键穿透给下层详情
   const zoom = document.getElementById('zoomOverlay');
   if (zoom.classList.contains('show')) {

@@ -39,3 +39,4 @@ _deploy.log
 交接文档.md
 # wrangler 本地缓存（部署脚本运行时生成）
 .wrangler/
+*.idsig

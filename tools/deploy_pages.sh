@@ -24,8 +24,9 @@ cp -r fonts unicode_data _deploy/
 rm -f _deploy/fonts/BabelStoneHan.woff2   # v0.2.5 起改用 Jigmo，旧字体不再上传
 
 # APK 顺带挂一份到 /download/，当 Gitee 之外的备用下载源
+# 网络差时可 SKIP_APK=1 跳过（21MB 传不动就别卡整个部署）
 APK="dist/Unicode编码查询-v${VER}.apk"
-if [ -f "$APK" ]; then
+if [ -f "$APK" ] && [ -z "$SKIP_APK" ]; then
   cp "$APK" "_deploy/download/unicode-chaxun-v${VER}.apk"
   echo "==> 附带 APK：unicode-chaxun-v${VER}.apk"
 fi
