@@ -1,10 +1,10 @@
 {
-  "latest": "0.2.10",
+  "latest": "0.2.11",
   "date": "2026-10-30",
-  "notes": "禁用双指缩放（viewport 锁死 + WebView 关闭缩放）；v0.2.9 仓库搬至 Gitee；v0.2.8 存释义按钮收敛。",
+  "notes": "AI 生僻字回答修复：字形拉取结果直接告知模型（不怪网络/不重复引导），「不确定」只说一次；v0.2.10 禁用双指缩放。",
   "downloads": {
     "web": "https://unchaxun.pages.dev/",
-    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.10/unicode-chaxun-v0.2.10.apk",
+    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.11/unicode-chaxun-v0.2.11.apk",
     "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"
   },
   "release": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"

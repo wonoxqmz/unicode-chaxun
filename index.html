@@ -3475,7 +3475,7 @@ const WORD_DICT = (function () {
 
 
 // ===== 应用版本 =====
-const APP_VERSION = '0.2.10';
+const APP_VERSION = '0.2.11';
 const APP_UNICODE_VERSION = '17.0';   // 内置区块数据版本
 
 // 更新检查用的版本清单（静态 JSON，由 Cloudflare Pages 托管，仓库根目录 version.json）
@@ -9278,7 +9278,9 @@ const AI_SYSTEM_PROMPT = '你是「Unicode 编码查询」应用内置的 AI 助
   + '「【释义小结】<字符>：<一句话说清读音和含义>」收尾，并问一句需不需要把这条解释存进他的自定义释义'
   + '（用户点回答下方的「存进自定义释义」按钮就能保存，你不用教步骤）；'
   + '自己都没把握的就千万别写小结、也别问存不存，直接如实说不确定。'
-  + '不确定就直说不确定，不要编造。';
+  + '不确定就直说不确定，不要编造。但「不确定」只说一次就够，别每轮复读、别让用户反复重试；'
+  + '同时把能确定的部分（码位、UTF-8/UTF-16 编码、所属区块、本机数据查到的一切）讲清楚，'
+  + '并引导用户点回答里的字符卡 → 详情 → 「联网字形」自行看权威字形——说一次引导就够，别啰嗦。';
 
 let aiPageMsgs = aiChatLoad();
 let aiPageBusy = false;
@@ -9786,14 +9788,26 @@ async function aiPageSend() {
   const favCtx = aiFavDigest();
   if (favCtx) sysMsgs.push({ role: 'system', content: favCtx });
   // v0.2.4：AI 视觉——把问题里码点的联网字形图一起发过去，让模型「亲眼」看字形
-  let attach = [];
+  let attach = [], glyphMiss = [];
   if (aiCfg.vision && lookCps.length) {
     showToast('正在联网取字形…');
     const want = lookCps.slice(0, 3);
     for (let i = 0; i < want.length; i++) {
       const durl = await aiGlyphDataUrl(want[i]);
-      if (durl) attach.push(durl);
+      if (durl) attach.push(durl); else glyphMiss.push(want[i]);
     }
+  }
+  // v0.2.11：把「哪些字没拉到字形」明明白白告诉模型，免得它怪用户网络、
+  // 或者每轮复读「拉取不了你重试」——直接下结论：这字在字形库里没收录
+  if (glyphMiss.length) {
+    sysMsgs.push({
+      role: 'system',
+      content: '【联网字形获取结果】这些码点在 GlyphWiki 拿不到字形图（多半是没收录，也可能是网络原因）：'
+        + glyphMiss.map(function (cp) { return 'U+' + cp.toString(16).toUpperCase(); }).join('、') + '。'
+        + '回答时注意：① 如果用户问的就是这些字，直接告诉他这个字在字形库里暂时没有字形数据，别让他反复重试；'
+        + '② 引导一次即可：点回答里的字符卡 → 详情 → 「联网字形」按钮可以自行确认（也照样可能没有）；'
+        + '③ 别归咎用户的网络，其他字能拉到就说明网络没问题。',
+    });
   }
   if (attach.length) {
     const lastMsg = ctx[ctx.length - 1];
@@ -10714,7 +10728,13 @@ function renderSettingsBody() {
       <details style="margin-top:10px">
         <summary style="cursor:pointer;font-size:13px;font-weight:600;user-select:none">${ic('log')}更新日志</summary>
         <div class="app-changelog">
-          <h4>v0.2.10 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <h4>v0.2.11 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <ul>
+            <li><b>AI 回答生僻字不再「弱智复读」</b>：联网字形拉取结果（哪些字没收录）现在会直接告诉模型——它不会再怪你网络、也不会让你一遍遍重试，而是直接下结论「这个字字形库暂未收录」，并把能确定的（码位、编码、区块）讲清楚，引导一次看「联网字形」就收住</li>
+            <li>提示词同步收紧：「不确定」只说一次，禁止每轮复读「我记不准」</li>
+            <li>小技巧：想让 AI 真能「看见」生僻字字形，到 设置 → AI 助手 打开「AI 视觉」（需要模型本身支持看图，如 gpt-4o / glm-4v / qwen-vl-max）</li>
+          </ul>
+          <h4 style="margin-top:10px">v0.2.10</h4>
           <ul>
             <li><b>禁用双指缩放</b>：手机上双指捏合会把整个页面缩来缩去，一眼就是网页套壳——现在网页层直接锁死缩放（viewport 限制 maximum-scale=1 / user-scalable=no），安卓端 WebView 的缩放开关也早已关闭，双保险。想看大字用字符详情里的放大预览，不碍事</li>
           </ul>
