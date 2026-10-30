@@ -35,3 +35,5 @@ _still.log
 # Pages 直传部署的临时目录与日志（tools/deploy_pages.sh 每次重建）
 _deploy/
 _deploy.log
+# 交接文档等内部文档：只留本地，不上仓库
+交接文档.md
