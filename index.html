@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
 <title>Unicode编码查询</title>
 <style>
@@ -3475,7 +3475,7 @@ const WORD_DICT = (function () {
 
 
 // ===== 应用版本 =====
-const APP_VERSION = '0.2.9';
+const APP_VERSION = '0.2.10';
 const APP_UNICODE_VERSION = '17.0';   // 内置区块数据版本
 
 // 更新检查用的版本清单（静态 JSON，由 Cloudflare Pages 托管，仓库根目录 version.json）
@@ -10714,7 +10714,11 @@ function renderSettingsBody() {
       <details style="margin-top:10px">
         <summary style="cursor:pointer;font-size:13px;font-weight:600;user-select:none">${ic('log')}更新日志</summary>
         <div class="app-changelog">
-          <h4>v0.2.9 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <h4>v0.2.10 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <ul>
+            <li><b>禁用双指缩放</b>：手机上双指捏合会把整个页面缩来缩去，一眼就是网页套壳——现在网页层直接锁死缩放（viewport 限制 maximum-scale=1 / user-scalable=no），安卓端 WebView 的缩放开关也早已关闭，双保险。想看大字用字符详情里的放大预览，不碍事</li>
+          </ul>
+          <h4 style="margin-top:10px">v0.2.9</h4>
           <ul>
             <li><b>仓库搬到 Gitee</b>：代码托管从 GitHub 迁到 Gitee（github.com 账号还在申诉封禁中），应用里「设置 → 反馈与联系」的仓库入口、更新提示里的发布页按钮、下载弹窗的兜底链接、关于本工具的常驻地址，全部指向新仓库</li>
             <li>下载链接改为 Gitee 发行版，不再依赖 GitHub；功能与 v0.2.8 完全一致，无其它改动</li>

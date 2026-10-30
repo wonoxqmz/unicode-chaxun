@@ -2,7 +2,7 @@
 
 一个功能丰富的 Unicode 字符查询与浏览工具，纯前端单页应用，无需后端服务，开箱即用。
 
-当前版本：**v0.2.9**（更新日志见 README 底部，或打开应用「设置 → 关于本工具」查看）
+当前版本：**v0.2.10**（更新日志见 README 底部，或打开应用「设置 → 关于本工具」查看）
 
 Gitee：[i-dont-want-to-pick-a-name/unicode-chaxun](https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun)
 
@@ -419,6 +419,12 @@ build.bat clean      清掉旧产物重新打
 
 ## 更新日志
 
+### v0.2.10（最新）
+
+**禁用双指缩放**
+
+- 手机上双指捏合能缩放整个页面，「一眼网页套壳」——网页层 viewport 锁死（maximum-scale=1 / user-scalable=no），安卓端 WebView 缩放开关双保险
+- 想看大字形用字符详情里的「放大预览」，不影响
 ### v0.2.9（最新）
 
 **代码搬到 Gitee**

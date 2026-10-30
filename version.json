@@ -1,10 +1,10 @@
 {
-  "latest": "0.2.9",
+  "latest": "0.2.10",
   "date": "2026-10-30",
-  "notes": "仓库搬到 Gitee：应用内仓库入口、更新发布页按钮、兜底下载链接全部改指新仓库；下载改走 Gitee 发行版。功能与 v0.2.8 一致。",
+  "notes": "禁用双指缩放（viewport 锁死 + WebView 关闭缩放）；v0.2.9 仓库搬至 Gitee；v0.2.8 存释义按钮收敛。",
   "downloads": {
     "web": "https://unchaxun.pages.dev/",
-    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.9/unicode-chaxun-v0.2.9.apk",
+    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.10/unicode-chaxun-v0.2.10.apk",
     "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"
   },
   "release": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"
