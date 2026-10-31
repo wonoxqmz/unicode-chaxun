@@ -1,10 +1,10 @@
 {
-  "latest": "0.2.13",
+  "latest": "0.2.14",
   "date": "2026-10-31",
-  "notes": "补充修复：搜索、批量解析页进页面/切模式不再自动弹键盘（v0.2.12 只修了字符对比页漏了这两个）。",
+  "notes": "全新应用图标：宣纸底+宋体「字」+朱红小印「5B57」（字=U+5B57，码位自指）；三端图标统一；设置面板顶部展示图标。",
   "downloads": {
     "web": "https://unchaxun.pages.dev/",
-    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.13/unicode-chaxun-v0.2.13.apk",
+    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.14/unicode-chaxun-v0.2.14.apk",
     "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"
   },
   "release": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"
