@@ -40,4 +40,3 @@ _deploy.log
 # wrangler 本地缓存（部署脚本运行时生成）
 .wrangler/
 *.idsig
-版本更新历史.md

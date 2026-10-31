@@ -55,6 +55,8 @@ def main():
         sys.executable, "-m", "PyInstaller",
         "--noconfirm", mode, "--noconsole",
         "--name", "UnicodeChaxun",
+        # v0.2.15：exe 也带上应用图标（宣纸底宋体「字」+朱红小印）
+        "--icon", os.path.join(DESKTOP, "icon.ico"),
         # 注意：这里必须写绝对路径。--add-data 的相对路径是按 .spec 所在目录算的，
         # 不是按当前工作目录，写 "index.html;." 会让 PyInstaller 找不到文件
         "--add-data", os.path.join(DESKTOP, "index.html") + os.pathsep + ".",
