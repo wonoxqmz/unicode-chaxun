@@ -1,11 +1,13 @@
 {
-  "latest": "0.2.17",
+  "latest": "0.2.18",
   "date": "2026-10-31",
-  "notes": "字体对比大改版：字符详情直接横排比对该字在宋体/黑体/楷体/思源等字体下的样子，大图弹层可调字号、自动检测缺字形；新增内置字库包 BabelStone Han（CJK 基本区+扩展A）。",
+  "notes": "瘦身 76%：汉字字典从 HTML 搬成独立按需加载文件（3039KB→716KB），启动不再等字典；修好设置页图标翻面回不去的 bug；新增 3 个彩蛋与长按彩蛋清单，并把「翻面灵感来自字统网 zi.tools」写进设置页。",
   "downloads": {
     "web": "https://unchaxun.pages.dev/",
-    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.17/unicode-chaxun-v0.2.17.apk",
-    "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.17/unicode-chaxun-v0.2.17.exe"
+    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.18/unicode-chaxun-v0.2.18.apk",
+    "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.18/unicode-chaxun-v0.2.18.exe",
+    "apk_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.18/unicode-chaxun-v0.2.18-lite.apk",
+    "exe_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.18/unicode-chaxun-v0.2.18-lite.exe"
   },
   "release": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"
 }

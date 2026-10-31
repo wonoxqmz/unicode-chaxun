@@ -26,13 +26,21 @@ cp -r fonts unicode_data _deploy/
 # APK 顺带挂一份到 /download/，当 Gitee 之外的备用下载源
 # 网络差时可 SKIP_APK=1 跳过；v0.2.17 起 APK 带 BabelStone 超过 Pages 25MiB 上限，超限自动跳过镜像
 APK="dist/Unicode编码查询-v${VER}.apk"
-if [ -f "$APK" ] && [ -z "$SKIP_APK" ]; then
-  APK_SIZE=$(stat -c%s "$APK")
-  if [ "$APK_SIZE" -le $((25*1024*1024)) ]; then
-    cp "$APK" "_deploy/download/unicode-chaxun-v${VER}.apk"
-    echo "==> 附带 APK：unicode-chaxun-v${VER}.apk"
-  else
-    echo "==> APK $(($APK_SIZE/1024/1024))MiB 超过 Pages 25MiB 上限，跳过镜像（下载走 Gitee 直链）"
+APK_LITE="dist/Unicode编码查询-v${VER}-lite.apk"
+if [ -z "$SKIP_APK" ]; then
+  # 完整版超过 25MiB 时退而挂精简版（v0.2.18 起有 lite 包）
+  MIRROR="$APK"
+  [ -f "$MIRROR" ] || MIRROR="$APK_LITE"
+  if [ -f "$MIRROR" ]; then
+    MIRROR_SIZE=$(stat -c%s "$MIRROR")
+    if [ "$MIRROR_SIZE" -le $((25*1024*1024)) ]; then
+      case "$MIRROR" in
+        *-lite.apk) cp "$MIRROR" "_deploy/download/unicode-chaxun-v${VER}-lite.apk"; echo "==> 附带精简版 APK：unicode-chaxun-v${VER}-lite.apk" ;;
+        *)          cp "$MIRROR" "_deploy/download/unicode-chaxun-v${VER}.apk"; echo "==> 附带 APK：unicode-chaxun-v${VER}.apk" ;;
+      esac
+    else
+      echo "==> APK $(($MIRROR_SIZE/1024/1024))MiB 超过 Pages 25MiB 上限，跳过镜像（下载走 Gitee 直链）"
+    fi
   fi
 fi
 

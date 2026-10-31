@@ -55,20 +55,29 @@ for f in UnicodeData.txt Blocks.txt Scripts.txt LineBreak.txt; do
   if [ ! -f "../unicode_data/$f" ]; then echo "!! 找不到 ../unicode_data/$f"; exit 1; fi
   cp "../unicode_data/$f" "assets/unicode_data/$f"
 done
+# v0.2.18：汉字字典（拼音/笔画/部首/释义，1.71MB brotli）从 HTML 里搬出来，按需加载
+if [ ! -f "../unicode_data/worddict.br" ]; then echo "!! 找不到 ../unicode_data/worddict.br"; exit 1; fi
+cp "../unicode_data/worddict.br" "assets/unicode_data/worddict.br"
 ls -la assets/unicode_data/
 
 # v0.2.5：扩展区字体包（Jigmo，覆盖 CJK 扩展 B–J）打进 assets，离线可装
 # v0.2.17：BabelStone Han（CJK 基本区+扩展A）也一起打进 assets，字体对比的第二参照系
-echo "==> 同步 fonts -> assets/fonts/"
-mkdir -p assets/fonts
-for FONT in Jigmo2.woff2 Jigmo3.woff2 BabelStoneHan.woff2; do
-  if [ ! -f "../fonts/$FONT" ]; then
-    echo "!! 找不到扩展区字体包（../fonts/$FONT），见 README「字体包」一节"
-    exit 1
-  fi
-  cp "../fonts/$FONT" "assets/fonts/$FONT"
-done
-ls -la assets/fonts/
+# v0.2.18：LITE=1 出精简版——不带任何字库包（约 26MB → 2MB 左右），字库需要时联网下载
+if [ -n "$LITE" ]; then
+  echo "==> LITE 精简版：跳过字库包（Jigmo / BabelStone Han 需联网安装）"
+  rm -rf assets/fonts
+else
+  echo "==> 同步 fonts -> assets/fonts/"
+  mkdir -p assets/fonts
+  for FONT in Jigmo2.woff2 Jigmo3.woff2 BabelStoneHan.woff2; do
+    if [ ! -f "../fonts/$FONT" ]; then
+      echo "!! 找不到扩展区字体包（../fonts/$FONT），见 README「字体包」一节"
+      exit 1
+    fi
+    cp "../fonts/$FONT" "assets/fonts/$FONT"
+  done
+  ls -la assets/fonts/
+fi
 
 echo "==> 0/7 clean"
 rm -rf "$OUT"
@@ -125,13 +134,15 @@ if [ ! -f "$KS" ]; then
     -dname "CN=Unicode Chaxun,O=LCJ,C=CN" >/dev/null 2>&1
   echo "    已生成签名文件: $KS"
 fi
+FINAL="$NAME-v$VER.apk"
+[ -n "$LITE" ] && FINAL="$NAME-v$VER-lite.apk"
 "$JAVA" -jar "$BT/lib/apksigner.jar" sign \
   --ks "$KS" --ks-pass "pass:$KSPASS" --key-pass "pass:$KSPASS" \
   --min-sdk-version "$MIN_API" --v1-signing-enabled true --v2-signing-enabled true \
-  --out "$NAME-v$VER.apk" "$OUT/aligned.apk"
+  --out "$FINAL" "$OUT/aligned.apk"
 
 echo "==> 验证"
-"$JAVA" -jar "$BT/lib/apksigner.jar" verify --min-sdk-version "$MIN_API" --print-certs "$NAME-v$VER.apk" | head -6
-"$BT/aapt2.exe" dump badging "$NAME-v$VER.apk" | head -5
-ls -lh "$NAME-v$VER.apk"
-echo "==> DONE: $NAME-v$VER.apk"
+"$JAVA" -jar "$BT/lib/apksigner.jar" verify --min-sdk-version "$MIN_API" --print-certs "$FINAL" | head -6
+"$BT/aapt2.exe" dump badging "$FINAL" | head -5
+ls -lh "$FINAL"
+echo "==> DONE: $FINAL"

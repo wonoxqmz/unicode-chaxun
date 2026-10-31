@@ -21,6 +21,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DESKTOP = os.path.join(ROOT, "desktop")
 ONEDIR = "--onedir" in sys.argv
+LITE = "--lite" in sys.argv          # v0.2.18：精简版，不带字库包（约 26MB → 12MB 左右）
 DIST = os.path.join(ROOT, "dist_dir" if ONEDIR else "dist")
 BUILD = os.path.join(os.environ.get("TEMP", "/tmp"), "pybuild_uchx_dir" if ONEDIR else "pybuild_uchx")
 EXE_ASCII = "UnicodeChaxun.exe"
@@ -65,11 +66,16 @@ def main():
         "--add-data", os.path.join(ROOT, "unicode_data", "Blocks.txt") + os.pathsep + "unicode_data",
         "--add-data", os.path.join(ROOT, "unicode_data", "Scripts.txt") + os.pathsep + "unicode_data",
         "--add-data", os.path.join(ROOT, "unicode_data", "LineBreak.txt") + os.pathsep + "unicode_data",
+        # v0.2.18：汉字字典（拼音/笔画/部首/释义，1.71MB brotli），页面按需加载
+        "--add-data", os.path.join(ROOT, "unicode_data", "worddict.br") + os.pathsep + "unicode_data",
         # v0.2.5：扩展区字体包（Jigmo，扩展 B–I 100% 覆盖），本地服务按 /fonts/xxx 提供
-        "--add-data", os.path.join(ROOT, "fonts", "Jigmo2.woff2") + os.pathsep + "fonts",
-        "--add-data", os.path.join(ROOT, "fonts", "Jigmo3.woff2") + os.pathsep + "fonts",
         # v0.2.17：BabelStone Han（CJK 基本区+扩展A），字体对比的第二参照系
-        "--add-data", os.path.join(ROOT, "fonts", "BabelStoneHan.woff2") + os.pathsep + "fonts",
+        # v0.2.18：--lite 精简版不带任何字库包（字库改由联网按需下载）
+    ]
+    if not LITE:
+        for fn in ("Jigmo2.woff2", "Jigmo3.woff2", "BabelStoneHan.woff2"):
+            args += ["--add-data", os.path.join(ROOT, "fonts", fn) + os.pathsep + "fonts"]
+    args += [
         "--distpath", DIST,
         "--workpath", os.path.join(BUILD, "work"),
         "--specpath", BUILD,
@@ -92,7 +98,7 @@ def main():
     if not os.path.isfile(built):
         raise SystemExit("PyInstaller 没产出 %s" % built)
 
-    final = os.path.join(target_dir, EXE_FINAL)
+    final = os.path.join(target_dir, ("Unicode编码查询-精简版.exe" if LITE else EXE_FINAL))
     # 用 replace 而不是先删再改名：本机删文件会走"移到回收站"的钩子，
     # 大文件删除失败会让整个打包报错，replace 是原子覆盖，绕开这一步
     os.replace(built, final)

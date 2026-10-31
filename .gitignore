@@ -40,3 +40,8 @@ _deploy.log
 # wrangler 本地缓存（部署脚本运行时生成）
 .wrangler/
 *.idsig
+
+# 临时校验文件
+_live.html
+_vj.json
+_h.txt
