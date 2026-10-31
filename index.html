@@ -3622,7 +3622,7 @@ function wordDictOnLoaded() {
 
 
 // ===== 应用版本 =====
-const APP_VERSION = '0.2.18';
+const APP_VERSION = '0.2.19';
 const APP_UNICODE_VERSION = '17.0';   // 内置区块数据版本
 
 // 更新检查用的版本清单（静态 JSON，由 Cloudflare Pages 托管，仓库根目录 version.json）
@@ -11418,7 +11418,11 @@ function renderSettingsBody() {
       <details style="margin-top:10px">
         <summary style="cursor:pointer;font-size:13px;font-weight:600;user-select:none">${ic('log')}更新日志</summary>
         <div class="app-changelog">
-          <h4>v0.2.18 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <h4>v0.2.19 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <ul>
+            <li><b>修 APK 顶上的黑框</b>：安卓端之前直接套系统的深色主题，状态栏和窗口背景是 ROM 默认的黑色——应用顶部一条黑框，最近任务快照里尤其显眼。现在换成自定义浅色主题：状态栏/导航栏/启动画面背景全部与应用底色 <code>#f8f9fa</code> 一致，状态栏图标在 Android 6.0+ 自动转深色保证看得清（网页版与桌面版本来就没这个问题，仅 APK 变化）</li>
+          </ul>
+          <h4 style="margin-top:10px">v0.2.18</h4>
           <ul>
             <li><b>瘦身大手术</b>：14809 条汉字字典（拼音/笔画/部首/释义）从 HTML 里搬到了独立的 <code>unicode_data/worddict.br</code>，改成按需加载——<b>程序本体从 3.11MB 降到约 0.7MB</b>，占原来 78% 的那块数据不再拖慢启动；base64 换二进制还另外省了 57 万字节。第一次点开字符详情时读一次（本地几乎瞬时），之后常驻内存</li>
             <li><b>修彩蛋 bug</b>：设置页图标翻面以前只会翻成黑面、再也翻不回来，现在两面来回切，正面反面各有一套文案</li>

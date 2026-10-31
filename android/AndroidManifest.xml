@@ -12,7 +12,7 @@
     <application
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
-        android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
+        android:theme="@style/UchxTheme"
         android:hardwareAccelerated="true"
         android:allowBackup="true"
         android:usesCleartextTraffic="true">

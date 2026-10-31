@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- API 27+：浅色导航栏上的按键/手势条也要深色 -->
+<resources>
+    <style name="UchxTheme" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar">
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+</resources>

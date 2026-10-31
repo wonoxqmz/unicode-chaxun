@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- v0.2.19：自定义浅色主题。
+     之前直接用系统的 Theme.DeviceDefault.NoActionBar（深色系），状态栏/窗口背景
+     全是 ROM 默认的黑色——应用顶上一条黑框，最近任务快照里尤其难看。
+     统一改成和应用底色 #f8f9fa 一致的浅色，状态栏图标深色可见性见 values-v23/v27。 -->
+<resources>
+    <style name="UchxTheme" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar">
+        <!-- 窗口背景 = 应用底色：启动瞬间、最近任务快照不再露黑底 -->
+        <item name="android:windowBackground">#fff8f9fa</item>
+        <!-- 状态栏/导航栏同色（API 21+，minSdk 正好 21） -->
+        <item name="android:statusBarColor">#fff8f9fa</item>
+        <item name="android:navigationBarColor">#fff8f9fa</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <!-- Android 12+ 自动启动画面也吃这个背景色，浅色统一 -->
+        <item name="android:windowSplashScreenBackground">#fff8f9fa</item>
+    </style>
+</resources>
