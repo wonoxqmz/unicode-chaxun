@@ -24,11 +24,16 @@ cp -r fonts unicode_data _deploy/
 # v0.2.17：BabelStoneHan.woff2 重新上架（字体对比功能要用，按需下载不影响首屏）
 
 # APK 顺带挂一份到 /download/，当 Gitee 之外的备用下载源
-# 网络差时可 SKIP_APK=1 跳过（21MB 传不动就别卡整个部署）
+# 网络差时可 SKIP_APK=1 跳过；v0.2.17 起 APK 带 BabelStone 超过 Pages 25MiB 上限，超限自动跳过镜像
 APK="dist/Unicode编码查询-v${VER}.apk"
 if [ -f "$APK" ] && [ -z "$SKIP_APK" ]; then
-  cp "$APK" "_deploy/download/unicode-chaxun-v${VER}.apk"
-  echo "==> 附带 APK：unicode-chaxun-v${VER}.apk"
+  APK_SIZE=$(stat -c%s "$APK")
+  if [ "$APK_SIZE" -le $((25*1024*1024)) ]; then
+    cp "$APK" "_deploy/download/unicode-chaxun-v${VER}.apk"
+    echo "==> 附带 APK：unicode-chaxun-v${VER}.apk"
+  else
+    echo "==> APK $(($APK_SIZE/1024/1024))MiB 超过 Pages 25MiB 上限，跳过镜像（下载走 Gitee 直链）"
+  fi
 fi
 
 du -sh _deploy
