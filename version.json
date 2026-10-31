@@ -1,11 +1,11 @@
 {
-  "latest": "0.2.15",
+  "latest": "0.2.16",
   "date": "2026-10-31",
-  "notes": "彩蛋版：设置页图标连点翻转+冷知识；码位挑战小游戏（60秒猜码位，纪录排行）；桌面端 ↑↑↓↓←→←→BA 字符雨；版本徽章隐藏文案。",
+  "notes": "启动看门狗：网络中断导致启动页永远转圈时，15 秒后明确提示「加载中断，刷新重试」，不再干等。",
   "downloads": {
     "web": "https://unchaxun.pages.dev/",
-    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.15/unicode-chaxun-v0.2.15.apk",
-    "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.15/unicode-chaxun-v0.2.15.exe"
+    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.16/unicode-chaxun-v0.2.16.apk",
+    "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.16/unicode-chaxun-v0.2.16.exe"
   },
   "release": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"
 }
