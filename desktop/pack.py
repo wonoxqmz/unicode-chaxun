@@ -68,6 +68,8 @@ def main():
         # v0.2.5：扩展区字体包（Jigmo，扩展 B–I 100% 覆盖），本地服务按 /fonts/xxx 提供
         "--add-data", os.path.join(ROOT, "fonts", "Jigmo2.woff2") + os.pathsep + "fonts",
         "--add-data", os.path.join(ROOT, "fonts", "Jigmo3.woff2") + os.pathsep + "fonts",
+        # v0.2.17：BabelStone Han（CJK 基本区+扩展A），字体对比的第二参照系
+        "--add-data", os.path.join(ROOT, "fonts", "BabelStoneHan.woff2") + os.pathsep + "fonts",
         "--distpath", DIST,
         "--workpath", os.path.join(BUILD, "work"),
         "--specpath", BUILD,

@@ -21,7 +21,7 @@ rm -rf _deploy
 mkdir -p _deploy/download
 cp index.html _headers version.json _deploy/
 cp -r fonts unicode_data _deploy/
-rm -f _deploy/fonts/BabelStoneHan.woff2   # v0.2.5 起改用 Jigmo，旧字体不再上传
+# v0.2.17：BabelStoneHan.woff2 重新上架（字体对比功能要用，按需下载不影响首屏）
 
 # APK 顺带挂一份到 /download/，当 Gitee 之外的备用下载源
 # 网络差时可 SKIP_APK=1 跳过（21MB 传不动就别卡整个部署）

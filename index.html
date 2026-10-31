@@ -35,7 +35,7 @@ setTimeout(function () {
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI", "Microsoft YaHei", system-ui, -apple-system, sans-serif, "UnicodeExt";
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI", "Microsoft YaHei", system-ui, -apple-system, sans-serif, "UnicodeExt", "BabelStonePkg";
   background: var(--bg);
   color: var(--text);
   height: 100vh;
@@ -256,7 +256,7 @@ body.dark .tool-page .tp-btn.sec:hover { background: #3d4a6c; }
 .compare-char-cell { text-align: center; }
 .compare-char-big {
   font-size: 64px; line-height: 1; margin-bottom: 8px;
-  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI Symbol", "Noto Sans", "PingFang SC", "Microsoft YaHei", sans-serif, "UnicodeExt";
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI Symbol", "Noto Sans", "PingFang SC", "Microsoft YaHei", sans-serif, "UnicodeExt", "BabelStonePkg";
 }
 .compare-char-big.same { color: var(--accent); }
 .compare-char-big.diff { color: #e53935; }
@@ -316,6 +316,58 @@ body.dark .compare-status.diff { background: #b71c1c; color: #ef9a9a; }
   border-radius: 4px; font-size: 10px; font-weight: 600;
 }
 body.dark .surrogate-tag { background: #4527a0; color: #ede7f6; }
+
+/* ---- 字体对比（v0.2.17）---- */
+.font-strip {
+  display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 6px;
+  -webkit-overflow-scrolling: touch; scroll-behavior: smooth;
+}
+.font-card {
+  flex: 0 0 auto; position: relative; width: 108px;
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 10px 6px 7px; text-align: center; cursor: pointer;
+  background: var(--bg); transition: border-color .15s;
+}
+.font-card:hover { border-color: #7a9bd4; }
+body.dark .font-card:hover { border-color: #5a7ab4; }
+.font-card .fc-char {
+  font-size: 52px; line-height: 1.2; height: 68px;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.font-card .fc-name {
+  font-size: 11px; color: var(--muted); margin-top: 3px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.font-card .fc-src {
+  position: absolute; top: 4px; left: 6px; font-size: 9px;
+  color: var(--muted); opacity: .8;
+}
+.font-card .fc-miss {
+  position: absolute; top: 3px; right: 5px; font-size: 9px;
+  color: #c62828; background: #ffebee; border-radius: 3px; padding: 0 4px;
+}
+body.dark .font-card .fc-miss { background: #3a1a1a; color: #ef9a9a; }
+.font-card.fc-missed { opacity: .5; }
+.font-card.fc-absent { opacity: .3; }
+.font-grid {
+  --fsz: 96px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px; margin-top: 10px;
+}
+.font-grid .font-card { width: auto; }
+.font-grid .fc-char { font-size: var(--fsz); height: calc(var(--fsz) * 1.35); }
+.font-grid .font-card .fc-src { top: 5px; left: 7px; font-size: 10px; }
+.fc-controls {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 2px 0 4px; font-size: 13px; color: var(--muted);
+}
+.fc-controls input[type=range] { width: 160px; }
+.fc-hint { font-size: 11px; color: var(--muted); margin-top: 10px; line-height: 1.7; }
+.fs-more {
+  font-size: 12px; color: #4a7dff; cursor: pointer; white-space: nowrap;
+  font-weight: 400; margin-left: 8px;
+}
+body.dark .fs-more { color: #8ab0ff; }
 
 /* 批量解析结果 */
 .batch-result {
@@ -702,7 +754,7 @@ body.dark .cell.cell-favmode:active { background: #3a2a10; }
 .cell:hover::after { opacity: 1; }
 .cell .ch {
   font-size: 22px; line-height: 1;
-  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI Symbol", "Noto Sans", "PingFang SC", "Microsoft YaHei", sans-serif, "UnicodeExt";
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI Symbol", "Noto Sans", "PingFang SC", "Microsoft YaHei", sans-serif, "UnicodeExt", "BabelStonePkg";
 }
 .cell .cp {
   font-size: 9px; font-family: Consolas, monospace;
@@ -978,7 +1030,7 @@ body.dark .pagination .pg-jump input { background: #1e2742; }
 }
 .modal-header .big-char {
   font-size: 72px; line-height: 1;
-  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI Symbol", "Noto Sans", "PingFang SC", "Microsoft YaHei", sans-serif, "UnicodeExt";
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI Symbol", "Noto Sans", "PingFang SC", "Microsoft YaHei", sans-serif, "UnicodeExt", "BabelStonePkg";
 }
 .modal-header .name {
   font-size: 16px; font-weight: 700; margin-top: 6px;
@@ -1235,7 +1287,7 @@ body.dark .pagination .pg-jump input { background: #1e2742; }
 .egg-flipping { animation: eggFlip .55s ease-in-out; }
 .egg-char-rain {
   position: fixed; top: -70px; z-index: 99990; pointer-events: none;
-  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI Symbol", "Noto Sans", "PingFang SC", "Microsoft YaHei", sans-serif, "UnicodeExt";
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI Symbol", "Noto Sans", "PingFang SC", "Microsoft YaHei", sans-serif, "UnicodeExt", "BabelStonePkg";
   line-height: 1;
   animation: eggRainFall linear forwards;
 }
@@ -1807,6 +1859,28 @@ body.dark .ai-err { color: #ef9a9a; }
         <button onclick="exportImage('webp')" style="padding:8px 16px;background:#666;color:white;border:none;border-radius:4px;cursor:pointer">导出 WebP</button>
         <button onclick="exportImage('svg')" style="padding:8px 16px;background:#666;color:white;border:none;border-radius:4px;cursor:pointer">导出 SVG</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- 字体对比弹层（v0.2.17）：z-index 210 盖过详情弹窗(200)；从 AI 面板进详情时详情也是 210，
+     本层在 DOM 里更靠后所以仍在其上。点卡片 = 复制该字符。 -->
+<div class="modal-overlay" id="fontCompareOverlay" style="z-index:210" onmousedown="overlayPressOn(this, event)" onclick="overlayClickMaybe(this, event, closeFontCompare)">
+  <div class="modal" style="width:760px;max-width:94vw">
+    <button class="modal-close" onclick="closeFontCompare()">×</button>
+    <div class="modal-header">
+      <div class="name" style="display:flex;align-items:center;justify-content:center;gap:9px"><svg class="ni lg"><use href="#i-font" xlink:href="#i-font"/></svg>字体对比<span id="fcHeadChar" style="font-size:26px;line-height:1"></span></div>
+    </div>
+    <div class="modal-body" style="padding:14px 18px 18px">
+      <div class="fc-controls">
+        <span>字号</span>
+        <input type="range" id="fcSize" min="48" max="220" value="96" oninput="fcSetSize(this.value)">
+        <span id="fcSizeVal" style="min-width:42px">96px</span>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="fcShowAbsent" onchange="fcToggleAbsent(this.checked)">显示未安装的字体</label>
+        <button class="toggle-btn" style="padding:4px 10px" onclick="fcCopyChar()">复制字符</button>
+      </div>
+      <div class="font-grid" id="fcGrid"></div>
+      <p class="fc-hint">灰卡「缺字形」= 字体装了但没有这个字符的字形（浏览器会拿别的字体顶包）；「未安装」= 系统里没有这款字体。想看更多字库：设置 → 内置字库包装 Jigmo / BabelStone Han，或在「外置字体」里安装自己的 TTF/WOFF。点任意卡片复制该字符。</p>
     </div>
   </div>
 </div>
@@ -3525,7 +3599,7 @@ const WORD_DICT = (function () {
 
 
 // ===== 应用版本 =====
-const APP_VERSION = '0.2.16';
+const APP_VERSION = '0.2.17';
 const APP_UNICODE_VERSION = '17.0';   // 内置区块数据版本
 
 // 更新检查用的版本清单（静态 JSON，由 Cloudflare Pages 托管，仓库根目录 version.json）
@@ -8126,6 +8200,7 @@ function showDetail(cp, silent) {
       ${row('类别', `${info.category} (${info.categoryCn})`)}
       ${flags.isInvisible ? row('实际字符', `<span style="font-family:monospace;background:var(--bg);padding:1px 4px;border-radius:3px">${escapeHtml(info.char === ' ' ? '␣(空格)' : info.char === '' ? '(不可见)' : info.char)}</span>`, true) : ''}
     </div>
+    ${renderFontStrip(cp, info, flags)}
     ${dictSection}
     <div class="modal-section"><h3>${ic('bulb')}字符含义 ${isCustomMeaning ? '<span style="color:var(--muted);font-size:0.7em">(自定义)</span>' : ''}</h3>
       ${meaningContent}
@@ -8159,6 +8234,7 @@ function showDetail(cp, silent) {
     <button onclick="copyText('${info.html.replace(/'/g,"\\'")}')">复制 HTML</button>
     <button onclick="copyText('${info.utf8}')">复制 UTF-8</button>
     <button onclick="showZoomPreview(${cp})">${ic('eye')}放大预览</button>
+    <button onclick="showFontCompare(${cp})">${ic('font')}字体对比</button>
     <button onclick="showGlyphFromWeb(${cp})">${ic('globe')}联网字形</button>
     <button class="secondary" onclick="toggleFavModal(${cp})">${ic('star')}${isFav?'已收藏':'收藏'}</button>
     <button class="secondary" onclick="openCategoryPicker(${cp}, safeChr(${cp}) || '?')">${ic('folder')}加入分类</button>
@@ -10741,6 +10817,244 @@ function extFontStateText() {
 }
 
 
+// ---- v0.2.17：BabelStone Han 内置字库包（第二包，与 Jigmo 并列）----
+// 覆盖 CJK 基本区全部 20,992 字 + 扩展 A 区，SIL OFL 许可。APK / 桌面版 fonts/ 里自带，
+// 网页版从本站下载。注册成后备字体，同时出现在字体对比列表里。
+const BSH_FONT_IDB = 'unicode_bshfont';
+const BSH_FONT_VERSION = 'BabelStone Han';
+const BSH_FONT_FAMILY = 'BabelStonePkg';
+const BSH_FONT_FILE = 'BabelStoneHan.woff2';
+let bshFontLoaded = false;
+
+async function bshFontApply(buf) {
+  if (!buf || !window.FontFace) return false;
+  try {
+    const ff = new FontFace(BSH_FONT_FAMILY, buf);
+    await ff.load();
+    document.fonts.add(ff);
+    bshFontLoaded = true;
+    return true;
+  } catch (e) { return false; }
+}
+async function bshFontInstall() {
+  if (_extFontInstalling) return;
+  _extFontInstalling = true;
+  const btn = document.getElementById('bshFontBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '下载中…'; }
+  try {
+    let buf = await extFontFetchBundled(BSH_FONT_FILE);
+    if (!buf) {
+      for (let j = 0; j < EXT_FONT_URL_BASES.length; j++) {
+        try {
+          const r = await fetch(EXT_FONT_URL_BASES[j] + BSH_FONT_FILE, { cache: 'force-cache' });
+          if (!r.ok) continue;
+          const b = await r.arrayBuffer();
+          if (extFontLooksValid(b)) { buf = b; break; }
+        } catch (e) { /* 换下一个源 */ }
+      }
+    }
+    if (!buf) { showToast('BabelStone Han 下载失败，检查网络后重试'); return; }
+    await idbSet(BSH_FONT_IDB, { ver: BSH_FONT_VERSION, files: [{ file: BSH_FONT_FILE, buf: buf }] });
+    const ok = await bshFontApply(buf);
+    showToast(ok ? '字库包已安装并生效' : '字库包已保存，刷新页面后生效');
+    refreshSettingsDisplay();
+  } finally {
+    _extFontInstalling = false;
+    if (btn) { btn.disabled = false; btn.textContent = '下载并安装'; }
+  }
+}
+async function bshFontRemove() {
+  if (!(await uiConfirm('移除 BabelStone Han 字库包？', { danger: true, okText: '移除' }))) return;
+  await idbDel(BSH_FONT_IDB);
+  bshFontLoaded = false;
+  showToast('已移除字库包，刷新页面后完全生效');
+  refreshSettingsDisplay();
+}
+function bshFontStateText() {
+  return bshFontLoaded ? ('已安装（' + BSH_FONT_VERSION + '）') : '未安装';
+}
+
+// ---- v0.2.17：字体对比 ----
+// 同一个字符在不同字体下的样子。字体来源三层：
+//   ① 内置字库包（Jigmo / BabelStone Han，装了才出现）
+//   ② 用户自定义字体（设置 → 外置字体）
+//   ③ 系统字体（按平台列出候选，用 canvas 量宽探测：没装的隐藏，装了但缺字形的标灰）
+// 探测原理：量字符在「目标字体」和「一个必然不存在的字体」下的宽度，
+// 一样宽说明浏览器在拿后备字体顶包；再用探针字（中/A）确认字体本身装没装。
+const CMP_MISS_FAMILY = 'UcXNoFontZZ';
+const CMP_SYS_FONTS = [
+  { name: '宋体', render: "'SimSun','NSimSun',serif", probe: "'SimSun'" },
+  { name: '黑体', render: "'SimHei',sans-serif", probe: "'SimHei'" },
+  { name: '楷体', render: "'KaiTi','STKaiti','KaiTi_GB2312',serif", probe: "'KaiTi'" },
+  { name: '仿宋', render: "'FangSong','STFangsong',serif", probe: "'FangSong'" },
+  { name: '微软雅黑', render: "'Microsoft YaHei','微软雅黑',sans-serif", probe: "'Microsoft YaHei'" },
+  { name: '等线', render: "'DengXian','等线',sans-serif", probe: "'DengXian'" },
+  { name: '苹方', render: "'PingFang SC',sans-serif", probe: "'PingFang SC'", plats: 'mac,ios' },
+  { name: 'macOS 宋体', render: "'Songti SC',serif", probe: "'Songti SC'", plats: 'mac' },
+  { name: 'macOS 楷体', render: "'Kaiti SC',serif", probe: "'Kaiti SC'", plats: 'mac' },
+  { name: '冬青黑体', render: "'Hiragino Sans GB',sans-serif", probe: "'Hiragino Sans GB'", plats: 'mac' },
+  { name: '思源黑体', render: "'Source Han Sans SC','Noto Sans CJK SC','Noto Sans SC',sans-serif", probe: "'Source Han Sans SC'" },
+  { name: '思源宋体', render: "'Source Han Serif SC','Noto Serif CJK SC','Noto Serif SC',serif", probe: "'Source Han Serif SC'" },
+  { name: 'Meiryo（日）', render: "'Meiryo',sans-serif", probe: "'Meiryo'" },
+  { name: 'Malgun Gothic（韩）', render: "'Malgun Gothic',sans-serif", probe: "'Malgun Gothic'" },
+  { name: 'Times New Roman', render: "'Times New Roman',serif", probe: "'Times New Roman'" },
+  { name: 'Arial', render: "Arial,sans-serif", probe: "Arial" },
+  { name: 'Courier New', render: "'Courier New',monospace", probe: "'Courier New'" },
+  { name: 'Consolas', render: "Consolas,'Courier New',monospace", probe: "Consolas" },
+  { name: '衬线', render: 'serif', generic: true },
+  { name: '无衬线', render: 'sans-serif', generic: true },
+  { name: '等宽', render: 'monospace', generic: true },
+  { name: '手写', render: 'cursive', generic: true },
+];
+let _cmpCtx = null;
+const _cmpWidthCache = {};
+const _cmpStateCache = {};
+let fcCP = null;          // 字体对比弹层当前字符
+let fcShowAbsent = false;
+let fcSize = 96;
+try { fcShowAbsent = localStorage.getItem('unicode_fc_absent') === '1'; } catch (e) {}
+try { const _fcs = parseInt(localStorage.getItem('unicode_fc_size'), 10); if (_fcs >= 48 && _fcs <= 220) fcSize = _fcs; } catch (e) {}
+
+function cmpMeasure(text, familyCss) {
+  if (!_cmpCtx) _cmpCtx = document.createElement('canvas').getContext('2d');
+  _cmpCtx.font = '80px ' + familyCss;
+  return _cmpCtx.measureText(text).width;
+}
+function cmpBaseWidth(text) {
+  if (_cmpWidthCache[text] === undefined) _cmpWidthCache[text] = cmpMeasure(text, '"' + CMP_MISS_FAMILY + '"');
+  return _cmpWidthCache[text];
+}
+function cmpProbeCharFor(text) {
+  let cjk = false;
+  for (const ch of text) {
+    const c = ch.codePointAt(0);
+    if ((c >= 0x2E80 && c <= 0x9FFF) || (c >= 0x3400 && c <= 0x4DBF) || (c >= 0xF900 && c <= 0xFAFF) || (c >= 0x20000 && c <= 0x3FFFF)) { cjk = true; break; }
+  }
+  return cjk ? '中' : 'A';
+}
+// 'ok' = 有字形；'miss' = 字体装了但缺这个字形；'none' = 字体本身不可用
+function cmpFontState(text, probeCss) {
+  const key = text + '\u0000' + probeCss;
+  if (_cmpStateCache[key] !== undefined) return _cmpStateCache[key];
+  let st;
+  try {
+    if (Math.abs(cmpMeasure(text, probeCss) - cmpBaseWidth(text)) > 0.5) st = 'ok';
+    else {
+      const probe = cmpProbeCharFor(text);
+      if (Math.abs(cmpMeasure(probe, probeCss) - cmpBaseWidth(probe)) > 0.5) st = 'miss';
+      else st = 'none';
+    }
+  } catch (e) { st = 'none'; }
+  _cmpStateCache[key] = st;
+  return st;
+}
+function cmpPlatform() {
+  const ua = navigator.userAgent || '';
+  if (/Android/i.test(ua)) return 'android';
+  if (/iPhone|iPad|iPod/i.test(ua)) return 'ios';
+  if (/Macintosh|Mac OS X/i.test(ua)) return 'mac';
+  if (/Windows/i.test(ua)) return 'win';
+  if (/Linux/i.test(ua)) return 'linux';
+  return 'other';
+}
+function cmpFontEntries() {
+  const list = [];
+  list.push({ name: '界面默认', render: '', src: '当前', always: true });
+  if (extFontLoaded) list.push({ name: 'Jigmo 扩展', render: "'" + EXT_FONT_FAMILY + "'", src: '内置' });
+  if (bshFontLoaded) list.push({ name: 'BabelStone 汉', render: "'" + BSH_FONT_FAMILY + "'", src: '内置' });
+  for (const f of customFonts) list.push({ name: f.name, render: "'CustomFont_" + f.name + "'", src: '自定义' });
+  const plat = cmpPlatform();
+  for (const f of CMP_SYS_FONTS) {
+    if (f.plats && f.plats.indexOf(plat) < 0) continue;
+    list.push({ name: f.name, render: f.render, probe: f.generic ? f.render : f.probe, src: f.generic ? '通用' : '系统' });
+  }
+  return list;
+}
+function fontCardHTML(en, ch, state, cp, onclick) {
+  let cls = 'font-card';
+  let badge = '';
+  if (state === 'miss') { cls += ' fc-missed'; badge = '<span class="fc-miss">缺字形</span>'; }
+  else if (state === 'none') { cls += ' fc-absent'; badge = '<span class="fc-miss">未安装</span>'; }
+  const style = en.render ? ' style="font-family:' + en.render + '"' : '';
+  return '<div class="' + cls + '"' + (onclick ? ' onclick="' + onclick + '"' : '') + '>' +
+    (en.src ? '<span class="fc-src">' + escapeHtml(en.src) + '</span>' : '') + badge +
+    '<div class="fc-char"' + style + '>' + escapeHtml(ch) + '</div>' +
+    '<div class="fc-name">' + escapeHtml(en.name) + '</div></div>';
+}
+// 详情弹窗里的横向字体条（点卡片开全量对比弹层）
+function renderFontStrip(cp, info, flags) {
+  const ch = flags.isInvisible ? (flags.invisibleMark || '␣') : info.char;
+  const entries = cmpFontEntries();
+  let cards = '';
+  let shown = 0;
+  for (const en of entries) {
+    if (shown >= 14) break;
+    let state = 'ok';
+    if (!en.always) {
+      state = cmpFontState(ch, en.probe || en.render);
+      if (state === 'none') continue;   // 详情条里不展示没装的字体
+    }
+    cards += fontCardHTML(en, ch, state, cp, 'showFontCompare(' + cp + ')');
+    shown++;
+  }
+  if (!cards) cards = '<span style="font-size:12px;color:var(--muted)">没有可用字体</span>';
+  return '<div class="modal-section"><h3>' + ic('font') + '字体对比<span class="fs-more" onclick="showFontCompare(' + cp + ')">查看全部 ›</span></h3>' +
+    '<div class="font-strip">' + cards + '</div>' +
+    '<div style="font-size:11px;color:var(--muted);margin-top:2px">同一个字符在不同字体下的样子。点卡片看大图、调字号；内置字库包和自定义字体会自动出现在列表里。</div></div>';
+}
+function showFontCompare(cp) {
+  const info = getCharInfo(cp);
+  if (!info) { showToast('无效编码点'); return; }
+  fcCP = cp;
+  const flags = getCharFlags(cp);
+  const ch = flags.isInvisible ? (flags.invisibleMark || '␣') : info.char;
+  document.getElementById('fcHeadChar').textContent = ' · ' + ch + '  U+' + cp.toString(16).toUpperCase().padStart(4, '0');
+  document.getElementById('fcSize').value = fcSize;
+  document.getElementById('fcSizeVal').textContent = fcSize + 'px';
+  document.getElementById('fcShowAbsent').checked = fcShowAbsent;
+  const grid = document.getElementById('fcGrid');
+  grid.style.setProperty('--fsz', fcSize + 'px');
+  fcRenderGrid();
+  document.getElementById('fontCompareOverlay').classList.add('show');
+  addLog('字体对比', ch + ' (U+' + cp.toString(16).toUpperCase().padStart(4, '0') + ')');
+}
+function closeFontCompare() {
+  document.getElementById('fontCompareOverlay').classList.remove('show');
+  fcCP = null;
+}
+function fcRenderGrid() {
+  if (fcCP === null) return;
+  const info = getCharInfo(fcCP);
+  if (!info) return;
+  const flags = getCharFlags(fcCP);
+  const ch = flags.isInvisible ? (flags.invisibleMark || '␣') : info.char;
+  const entries = cmpFontEntries();
+  let html = '';
+  for (const en of entries) {
+    let state = 'ok';
+    if (!en.always) {
+      state = cmpFontState(ch, en.probe || en.render);
+      if (state === 'none' && !fcShowAbsent) continue;
+    }
+    html += fontCardHTML(en, ch, state, fcCP, 'copyText(String.fromCodePoint(' + fcCP + '))');
+  }
+  document.getElementById('fcGrid').innerHTML = html || '<span style="font-size:13px;color:var(--muted)">没有可对比的字体</span>';
+}
+function fcSetSize(v) {
+  fcSize = Math.max(48, Math.min(220, parseInt(v, 10) || 96));
+  document.getElementById('fcSizeVal').textContent = fcSize + 'px';
+  document.getElementById('fcGrid').style.setProperty('--fsz', fcSize + 'px');
+  try { localStorage.setItem('unicode_fc_size', String(fcSize)); } catch (e) {}
+}
+function fcToggleAbsent(on) {
+  fcShowAbsent = !!on;
+  try { localStorage.setItem('unicode_fc_absent', fcShowAbsent ? '1' : '0'); } catch (e) {}
+  fcRenderGrid();
+}
+function fcCopyChar() {
+  if (fcCP !== null) copyText(String.fromCodePoint(fcCP));
+}
+
 function renderSettingsBody() {
   const charCount = unicodeData.charMap ? unicodeData.charMap.size : '—';
   const _us = updateStatusState();
@@ -10882,8 +11196,11 @@ function renderSettingsBody() {
     </div>
 
     <div class="settings-section">
-      <h3>${ic('font')}扩展区字体包</h3>
-      <p>CJK 扩展区的生僻字（𠮷 𡈁 𪜀 这种）手机和电脑的系统字体基本都没有，界面上只能看到方框。这个字体包是 <b>Jigmo（字雲）</b>，目前唯一覆盖 Unicode 17.0 全部 CJK 扩展区（B–J，实测 8 个区 100% 全覆盖、76,476 字）的免费字体，装上后方框会变成真字形。它注册成最后一级后备字体，只补缺字，常用字显示完全不受影响。安装包约 18.4 MB，存在本机。</p>
+      <h3>${ic('font')}内置字库包</h3>
+      <p>系统字体覆盖不到的字符，装个字库包补上；装好的字库除了在界面上补缺字，还会出现在<b>字符详情 → 字体对比</b>里，当「字库全」的参照系。</p>
+
+      <div style="font-weight:600;font-size:13px;margin-top:8px">① Jigmo（字雲）— CJK 扩展区</div>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.7">CJK 扩展区的生僻字（𠮷 𡈁 𪜀 这种）手机和电脑的系统字体基本都没有，界面上只能看到方框。Jigmo 是目前唯一覆盖 Unicode 17.0 全部 CJK 扩展区（B–J，实测 8 个区 100% 全覆盖、76,476 字）的免费字体，装上后方框会变成真字形。它注册成最后一级后备字体，只补缺字，常用字显示完全不受影响。安装包约 18.4 MB，存在本机。</p>
       <div class="settings-row">
         <span class="label">状态</span>
         <span class="value">${extFontStateText()}</span>
@@ -10893,7 +11210,20 @@ function renderSettingsBody() {
           ? '<button class="toggle-btn" onclick="extFontRemove()">' + ic('trash') + '移除字体包</button>'
           : '<button class="tp-btn" id="extFontBtn" onclick="extFontInstall()">' + ic('download') + '下载并安装</button>'}
       </div>
-      <p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.7">APK / 桌面版自带字体包，离线即可安装；网页版从本站或 jsDelivr 下载。Jigmo 采用 CC0 公有领域许可，可随意使用。</p>
+
+      <div style="font-weight:600;font-size:13px;margin-top:16px">② BabelStone Han — 常用汉字另一副面孔</div>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.7">覆盖 CJK 基本区全部 20,992 字和扩展 A 区的免费字体（SIL OFL 许可），字形风格和系统自带差别明显，装上后字体对比立刻多一个字库全的参照系；同样只作最后一级后备，不影响现有显示。安装包约 7.4 MB。</p>
+      <div class="settings-row">
+        <span class="label">状态</span>
+        <span class="value">${bshFontStateText()}</span>
+      </div>
+      <div class="settings-actions" style="margin-top:10px">
+        ${bshFontLoaded
+          ? '<button class="toggle-btn" onclick="bshFontRemove()">' + ic('trash') + '移除字库包</button>'
+          : '<button class="tp-btn" id="bshFontBtn" onclick="bshFontInstall()">' + ic('download') + '下载并安装</button>'}
+      </div>
+
+      <p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.7">APK / 桌面版自带两个字库包，离线即可安装；网页版从本站下载。Jigmo 采用 CC0 公有领域许可，BabelStone Han 采用 SIL OFL 许可，均可随意使用。</p>
     </div>
 
     <div class="settings-section">
@@ -11028,7 +11358,12 @@ function renderSettingsBody() {
       <details style="margin-top:10px">
         <summary style="cursor:pointer;font-size:13px;font-weight:600;user-select:none">${ic('log')}更新日志</summary>
         <div class="app-changelog">
-          <h4>v0.2.16 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <h4>v0.2.17 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <ul>
+            <li><b>字体对比大改版</b>：字符详情弹窗新增「字体对比」区——同一个字在宋体、黑体、楷体、微软雅黑、思源等一堆字体下的样子横向一排直接比；点「查看全部」开大图弹层，字号 48–220 随便拉，点任意卡片复制字符。系统里装了但缺这个字形的字体会标灰打上「缺字形」标记，没装的字体默认隐藏（可勾选显示）</li>
+            <li><b>新增内置字库包 ② BabelStone Han</b>：设置 → 内置字库包，约 7.4MB，覆盖 CJK 基本区 + 扩展 A，给字体对比添一个字库全的参照系（APK / 桌面版直接内置，网页版一键下载）；原来的「扩展区字体包」升级成「内置字库包」栏目，Jigmo 照旧</li>
+          </ul>
+          <h4 style="margin-top:10px">v0.2.16</h4>
           <ul>
             <li><b>启动看门狗</b>：网络把 3MB 程序本体下载到一半掐断时，启动页以前会永远转圈没有任何提示（主脚本在文件末尾，被掐断就永远不执行）——现在 15 秒没就绪就明确提示「加载中断，刷新重试」，不再干等</li>
           </ul>
@@ -11568,6 +11903,10 @@ loadCustomFonts();
 // v0.2.5：本机装过扩展区字体包就直接生效（IndexedDB 里存的是 ArrayBuffer 列表）
 idbGet(EXT_FONT_IDB).then(function (rec) {
   if (rec && rec.files && rec.files.length) return extFontApply(rec.files);
+}).catch(function () {});
+// v0.2.17：本机装过 BabelStone Han 字库包就直接生效（IndexedDB 里存的是 ArrayBuffer 列表）
+idbGet(BSH_FONT_IDB).then(function (rec) {
+  if (rec && rec.files && rec.files.length && rec.files[0] && rec.files[0].buf) return bshFontApply(rec.files[0].buf);
 }).catch(function () {});
 // 启动时（可选）检查一次新版本：延迟几秒，等首屏和字符数据都加载完再发
 scheduleUpdateCheck();

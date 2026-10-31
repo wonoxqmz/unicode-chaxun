@@ -58,9 +58,10 @@ done
 ls -la assets/unicode_data/
 
 # v0.2.5：扩展区字体包（Jigmo，覆盖 CJK 扩展 B–J）打进 assets，离线可装
+# v0.2.17：BabelStone Han（CJK 基本区+扩展A）也一起打进 assets，字体对比的第二参照系
 echo "==> 同步 fonts -> assets/fonts/"
 mkdir -p assets/fonts
-for FONT in Jigmo2.woff2 Jigmo3.woff2; do
+for FONT in Jigmo2.woff2 Jigmo3.woff2 BabelStoneHan.woff2; do
   if [ ! -f "../fonts/$FONT" ]; then
     echo "!! 找不到扩展区字体包（../fonts/$FONT），见 README「字体包」一节"
     exit 1

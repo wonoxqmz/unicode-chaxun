@@ -1,11 +1,11 @@
 {
-  "latest": "0.2.16",
+  "latest": "0.2.17",
   "date": "2026-10-31",
-  "notes": "启动看门狗：网络中断导致启动页永远转圈时，15 秒后明确提示「加载中断，刷新重试」，不再干等。",
+  "notes": "字体对比大改版：字符详情直接横排比对该字在宋体/黑体/楷体/思源等字体下的样子，大图弹层可调字号、自动检测缺字形；新增内置字库包 BabelStone Han（CJK 基本区+扩展A）。",
   "downloads": {
     "web": "https://unchaxun.pages.dev/",
-    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.16/unicode-chaxun-v0.2.16.apk",
-    "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.16/unicode-chaxun-v0.2.16.exe"
+    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.17/unicode-chaxun-v0.2.17.apk",
+    "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.17/unicode-chaxun-v0.2.17.exe"
   },
   "release": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"
 }
