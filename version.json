@@ -1,10 +1,10 @@
 {
-  "latest": "0.2.12",
+  "latest": "0.2.13",
   "date": "2026-10-31",
-  "notes": "体验修复：原生 confirm/prompt 全部换成应用内弹窗（不再显示「网址为file://」抬头）；滑动切栏目后顶栏标签自动滚回可视区；设置面板每次打开全部收起；设置里弹出的更新弹窗不再被压到设置后面；字符对比页不再自动弹键盘；更新区发布页链接与下载按钮不再撞色。",
+  "notes": "补充修复：搜索、批量解析页进页面/切模式不再自动弹键盘（v0.2.12 只修了字符对比页漏了这两个）。",
   "downloads": {
     "web": "https://unchaxun.pages.dev/",
-    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.12/unicode-chaxun-v0.2.12.apk",
+    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.13/unicode-chaxun-v0.2.13.apk",
     "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"
   },
   "release": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"

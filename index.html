@@ -3494,7 +3494,7 @@ const WORD_DICT = (function () {
 
 
 // ===== 应用版本 =====
-const APP_VERSION = '0.2.12';
+const APP_VERSION = '0.2.13';
 const APP_UNICODE_VERSION = '17.0';   // 内置区块数据版本
 
 // 更新检查用的版本清单（静态 JSON，由 Cloudflare Pages 托管，仓库根目录 version.json）
@@ -6982,7 +6982,7 @@ function showSearch() {
   const input = document.getElementById('spInput');
   if (input) {
     input.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
-    input.focus();
+    // v0.2.13：不再自动 focus——和字符对比页一样，进页面就弹键盘挡半屏；想输入自己点输入框
   }
 }
 
@@ -7004,7 +7004,7 @@ function setSearchMode(mode) {
   // 切换识别模式后立即按新规则重解析，避免"点了模式没反应"
   const inp = document.getElementById('spInput');
   if (inp && inp.value.trim()) doSearch();
-  else if (inp) inp.focus();
+  // v0.2.13：切模式不再自动 focus 弹键盘，点模式 chip ≠ 想打字
 }
 
 function quickSearch(q) {
@@ -7498,7 +7498,7 @@ function showBatch() {
     </div>
   `;
   const ta = document.getElementById('batchInput');
-  ta.focus();
+  // v0.2.13：不再自动 focus——进页面就弹键盘挡半屏；想粘贴/输入自己点输入框
   // Ctrl+Enter 立即解析
   ta.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') doBatch(); });
   // 实时解析（input 事件 + 防抖 120ms）
@@ -7544,7 +7544,7 @@ function switchBatchMode(mode) {
   const s = document.getElementById('batchStatus');
   if (s) s.textContent = '等待输入…';
   lastBatchData = [];
-  if (ta) ta.focus();
+  // v0.2.13：切模式不再自动 focus 弹键盘
   // 切换后如果输入框有内容，立即按新模式重新解析
   if (ta && ta.value) {
     doBatch();
@@ -10828,7 +10828,11 @@ function renderSettingsBody() {
       <details style="margin-top:10px">
         <summary style="cursor:pointer;font-size:13px;font-weight:600;user-select:none">${ic('log')}更新日志</summary>
         <div class="app-changelog">
-          <h4>v0.2.12 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <h4>v0.2.13 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <ul>
+            <li><b>搜索、批量解析页也不再自动弹键盘</b>：v0.2.12 修了字符对比页，漏了这两个——现在进页面、点模式切换都不再自动 focus 弹键盘，想输入自己点输入框（AI 面板是主动打开的，保留了聚焦）</li>
+          </ul>
+          <h4 style="margin-top:10px">v0.2.12</h4>
           <ul>
             <li><b>原生弹窗全部下岗</b>：清空对话、清记录、删分类这些确认框以前用的是浏览器原生 confirm，顶着「网址为"file://"的网页显示」的抬头，又丑又吓人——现在全部换成应用内样式的确认弹窗，危险操作确定键是红色的，支持 Esc 取消 / Enter 确定；重命名分类的输入框也一并换掉</li>
             <li><b>滑动切栏目后顶栏跟着走</b>：左右滑动切到后面的栏目时，选中的标签经常跑到屏幕外面看不到——现在会自动平滑滚回可视区中央</li>
