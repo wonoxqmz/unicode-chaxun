@@ -1,10 +1,10 @@
 {
-  "latest": "0.2.14",
+  "latest": "0.2.15",
   "date": "2026-10-31",
-  "notes": "全新应用图标：宣纸底+宋体「字」+朱红小印「5B57」（字=U+5B57，码位自指）；三端图标统一；设置面板顶部展示图标。",
+  "notes": "彩蛋版：设置页图标连点翻转+冷知识；码位挑战小游戏（60秒猜码位，纪录排行）；桌面端 ↑↑↓↓←→←→BA 字符雨；版本徽章隐藏文案。",
   "downloads": {
     "web": "https://unchaxun.pages.dev/",
-    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.14/unicode-chaxun-v0.2.14.apk",
+    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.15/unicode-chaxun-v0.2.15.apk",
     "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"
   },
   "release": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"
