@@ -1,13 +1,13 @@
 {
-  "latest": "0.2.23",
+  "latest": "0.2.24",
   "date": "2026-11-07",
-  "notes": "彩蛋图鉴进度纳入个人数据（导出 / 导入 / 清空 / 同步四处一致）；远程迁移的接收方可在预览里逐项勾选只收想要的内容；同步备份连空项也记，撤销更完整。",
+  "notes": "Material You 按官方 M3 重做：种子色生成 6 组 13 档色调色板、按颜色角色分配 tone、表面五级高度、状态层、形状与动效分层；设置改成分组入口 + 弹出小卡片，下载数据与 API Key 的长说明收进折叠。",
   "downloads": {
     "web": "https://unchaxun.pages.dev/",
-    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.23/unicode-chaxun-v0.2.23.apk",
-    "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.23/unicode-chaxun-v0.2.23.exe",
-    "apk_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.23/unicode-chaxun-v0.2.23-lite.apk",
-    "exe_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.23/unicode-chaxun-v0.2.23-lite.exe"
+    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.24/unicode-chaxun-v0.2.24.apk",
+    "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.24/unicode-chaxun-v0.2.24.exe",
+    "apk_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.24/unicode-chaxun-v0.2.24-lite.apk",
+    "exe_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.24/unicode-chaxun-v0.2.24-lite.exe"
   },
   "release": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"
 }

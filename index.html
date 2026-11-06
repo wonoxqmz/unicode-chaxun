@@ -1263,6 +1263,273 @@ body.mu .anim-seg { border-radius: 999px; }
 body.mu .anim-seg-btn { border-radius: 999px; }
 body.mu .anim-seg-btn.on { background: var(--mu-primary); }
 
+/* ===== Material 3 / Material You 设计令牌（v0.2.24）=====
+   之前只换了 3 个变量、把一堆控件全塞成 999px 胶囊，那是皮不是骨。
+   这次按 m3.material.io 的规范补上五件真正定义 M3 的东西：
+   ① 颜色按「角色」分配（primary / on-primary / container / surface / outline…），
+      角色值由种子色生成的 13 档色调色板按明暗映射，组件里不再写死 hex；
+   ② 表面高度用 surface-container 五级 + primary tint 表达，阴影只给真正浮起的层；
+   ③ 形状有档位（xs/sm/md/lg/xl/full），不同组件用不同档，不是全场一个圆角；
+   ④ 每个可点元素有 state layer：hover 8% / focus 10% / pressed 10%；
+   ⑤ 动效用 emphasized 缓动、150–300ms，容器变换表达层级而不是炫技。
+   叠加 ui-zhigan：间距只走 4 的倍数、左边缘对齐、去掉多余装饰、分割线能不用就不用。 */
+:root {
+  --m3-shape-xs: 4px;  --m3-shape-sm: 8px;  --m3-shape-md: 12px;
+  --m3-shape-lg: 16px; --m3-shape-xl: 28px; --m3-shape-full: 999px;
+  --m3-ease-emphasized: cubic-bezier(.2, 0, 0, 1);
+  --m3-ease-decel: cubic-bezier(.05, .7, .1, 1);
+  --m3-ease-accel: cubic-bezier(.3, 0, .8, .15);
+  --m3-dur: 220ms;
+  --m3-state-hover: .08; --m3-state-focus: .10; --m3-state-pressed: .10;
+  /* 色调高度：M3 用 surface-container 五级（lowest→highest）代替阴影层级，
+     具体颜色由 mu3Apply() 按种子色算好后写进 --md-sys-color-surface-container-* */
+  /* 字号阶梯：display / headline / title / body / label 五组，只留三档实际字号 */
+  --m3-type-title: 20px; --m3-type-body: 15px; --m3-type-label: 12px;
+}
+
+/* 角色接管 app 原有变量：这样全站（不只是设置页）都跟着动态取色走。
+   fallback 写的是 M3 baseline 的浅色参考值，老 WebView 也能退。 */
+body.mu {
+  --accent: var(--md-sys-color-primary, var(--mu-primary));
+  --accent-hover: var(--md-sys-color-primary, var(--mu-primary));
+  --text: var(--md-sys-color-on-surface, #1c1b1f);
+  --muted: var(--md-sys-color-on-surface-variant, #49454f);
+  --border: var(--md-sys-color-outline, #79747e);
+  --border-light: var(--md-sys-color-outline-variant, #e7e0ec);
+  --shadow: 0 1px 2px rgba(0,0,0,.06);
+  --shadow-hover: 0 4px 12px rgba(0,0,0,.10);
+}
+body.mu.dark {
+  --text: var(--md-sys-color-on-surface, #e6e0e9);
+  --muted: var(--md-sys-color-on-surface-variant, #cac4d0);
+  --border: var(--md-sys-color-outline, #938f99);
+  --border-light: var(--md-sys-color-outline-variant, #49454f);
+}
+/* v0.2.20 那批规则保留兼容，但开关 / 分段按钮要吃「角色色」而不是种子原色，
+   否则深色模式下 primary 偏暗，选中态看不出来 */
+body.mu .set-switch.on .track,
+body.mu .anim-seg-btn.on { background: var(--md-sys-color-primary, var(--mu-primary)); }
+body.mu .set-switch.on .track .thumb { background: var(--md-sys-color-on-primary, #fff); }
+body.mu .modal,
+body.mu .scard { background: var(--md-sys-color-surface-container-high, var(--card)); }
+body.mu .sidebar { background: var(--md-sys-color-surface-container-low, var(--bg)); }
+body.mu .topbar { background: var(--md-sys-color-surface, var(--bg)); }
+
+/* ---- state layer：所有可点组件共用一层 on-color 半透明叠色 ---- */
+.m3-state { position: relative; -webkit-tap-highlight-color: transparent;
+  --m3-state-color: var(--md-sys-color-on-surface, currentColor); }
+.m3-state::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--m3-state-color); opacity: 0; pointer-events: none;
+  border-radius: inherit;
+  transition: opacity var(--m3-dur) var(--m3-ease-emphasized);
+}
+.m3-state:hover::after { opacity: var(--m3-state-hover); }
+.m3-state:focus-visible::after { opacity: var(--m3-state-focus); }
+.m3-state:active::after { opacity: var(--m3-state-pressed); }
+.m3-state.m3-on-primary { --m3-state-color: var(--md-sys-color-on-primary, #fff); }
+.m3-state.m3-on-primary:hover::after,
+.m3-state.m3-on-primary:active::after { opacity: var(--m3-state-hover); }
+
+/* ---- 强调层级：filled > tonal > outlined > text；一屏只留一个 filled ---- */
+.m3-filled, .m3-tonal, .m3-outlined, .m3-text {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 40px; padding: 8px 16px; font-size: 13px; cursor: pointer;
+  border-radius: var(--m3-shape-md); border: 1px solid transparent;
+  transition: transform var(--m3-dur) var(--m3-ease-emphasized),
+              background var(--m3-dur) var(--m3-ease-emphasized);
+}
+.m3-filled { background: var(--md-sys-color-primary, var(--accent));
+  color: var(--md-sys-color-on-primary, #fff); border-radius: var(--m3-shape-full); }
+.m3-tonal { background: var(--md-sys-color-secondary-container, var(--bg));
+  color: var(--md-sys-color-on-secondary-container, var(--text)); }
+.m3-outlined { background: transparent; border-color: var(--md-sys-color-outline, var(--border));
+  color: var(--md-sys-color-primary, var(--accent)); }
+.m3-text { background: transparent; color: var(--md-sys-color-primary, var(--accent)); }
+.m3-filled:active, .m3-tonal:active, .m3-outlined:active, .m3-text:active { transform: scale(.97); }
+.m3-filled .ni, .m3-tonal .ni, .m3-outlined .ni, .m3-text .ni { width: 16px; height: 16px; }
+
+/* ===== 设置主界面：分组入口列表（M3 list item，单行 56dp / 双行 72dp）===== */
+.sc-home { padding: 0 0 8px; }
+.sc-group {
+  font-size: var(--m3-type-label); font-weight: 600; letter-spacing: .02em;
+  color: var(--muted); padding: 20px 8px 4px;
+}
+.sc-group:first-child { padding-top: 4px; }
+.sc-entry {
+  display: flex; align-items: center; gap: 16px; width: 100%;
+  min-height: 56px; padding: 8px 12px; margin: 0;
+  background: transparent; border: none; border-radius: var(--m3-shape-md);
+  text-align: left; color: var(--text); cursor: pointer;
+  transition: background var(--m3-dur) var(--m3-ease-emphasized),
+              transform var(--m3-dur) var(--m3-ease-emphasized);
+}
+.sc-entry:active { transform: scale(.985); }
+.sc-entry:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sc-entry .sc-ic {
+  width: 40px; height: 40px; flex: 0 0 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg); color: var(--muted);
+}
+.sc-entry .sc-ic .ni { width: 20px; height: 20px; }
+.sc-entry .sc-tx { flex: 1; min-width: 0; }
+.sc-entry .sc-t { display: block; font-size: var(--m3-type-body); font-weight: 500; line-height: 1.35; }
+.sc-entry .sc-s {
+  display: block;
+  font-size: var(--m3-type-label); color: var(--muted); margin-top: 2px;
+  line-height: 1.45; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.sc-entry .sc-chev { flex: 0 0 auto; color: var(--muted); width: 16px; height: 16px; }
+.sc-entry .sc-badge {
+  flex: 0 0 auto; font-size: 11px; color: var(--muted);
+  background: var(--bg); border-radius: var(--m3-shape-full); padding: 2px 8px;
+}
+body.mu .sc-entry .sc-ic {
+  background: var(--md-sys-color-secondary-container, var(--bg));
+  color: var(--md-sys-color-on-secondary-container, var(--text));
+}
+body.mu .sc-group { color: var(--md-sys-color-primary, var(--accent)); }
+body.mu .sc-entry .sc-badge {
+  background: var(--md-sys-color-surface-container-high, var(--bg));
+  color: var(--md-sys-color-on-surface-variant, var(--muted));
+}
+.sc-home-hint { font-size: 11px; color: var(--muted); padding: 12px 8px 0; line-height: 1.6; }
+
+/* ===== 设置小卡片：M3 basic dialog（28dp 圆角 / 24dp 内距 / 280–560dp 宽）===== */
+.scard-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 250;
+  background: rgba(0,0,0,.32);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity var(--m3-dur) var(--m3-ease-emphasized);
+}
+.scard-overlay.show { opacity: 1; pointer-events: auto; }
+.scard {
+  width: 520px; max-width: 92vw; max-height: 82vh;
+  display: flex; flex-direction: column;
+  background: var(--card); color: var(--text);
+  border-radius: var(--m3-shape-lg); padding: 24px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.18);
+  transform: translateY(16px) scale(.98); opacity: .6;
+  transition: transform var(--m3-dur) var(--m3-ease-decel),
+              opacity var(--m3-dur) var(--m3-ease-decel);
+}
+.scard-overlay.show .scard { transform: none; opacity: 1; }
+/* 移除 .show 时同一条 transition 反向播放：轻退场，不飞出屏幕 */
+.scard-handle { display: none; }
+.scard-head { display: flex; align-items: center; gap: 12px; padding-bottom: 16px; }
+.scard-head .sc-hicon {
+  width: 36px; height: 36px; flex: 0 0 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg); color: var(--accent);
+}
+.scard-head .sc-hicon .ni { width: 20px; height: 20px; }
+.scard-head .sc-htx { flex: 1; min-width: 0; }
+.scard-head h2 { font-size: var(--m3-type-title); font-weight: 500; line-height: 1.3; }
+.scard-head p { font-size: var(--m3-type-label); color: var(--muted); margin-top: 2px; line-height: 1.5; }
+.scard-close {
+  flex: 0 0 auto; width: 40px; height: 40px; border: none; border-radius: 50%;
+  background: transparent; color: var(--muted); cursor: pointer; font-size: 20px;
+}
+.scard-body { flex: 1; overflow-y: auto; padding: 0 2px 8px; min-height: 0; }
+.scard-foot { display: flex; justify-content: flex-end; gap: 8px; padding-top: 12px; }
+.scard-body .settings-section { margin-bottom: 20px; }
+.scard-body .settings-section:last-child { margin-bottom: 4px; }
+.scard-body .settings-section h3 {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 8px;
+}
+/* .ni 是 display:block，不显式 flex 的话图标会独占一行、标题掉到下一行 */
+.scard-body .settings-section h3 .ni {
+  width: 16px; height: 16px; margin: 0; color: inherit; vertical-align: middle;
+}
+.scard-body .settings-section.foldable > h3 { display: flex; cursor: default; }
+.scard-body .settings-section.foldable > h3:hover { background: transparent; }
+.scard-body .settings-section.foldable > .sec-body { display: block; }
+.scard-body .settings-fold-bar { display: none; }
+body.mu .scard {
+  border-radius: var(--m3-shape-xl);
+  background: var(--md-sys-color-surface-container-high, var(--card));
+  box-shadow: 0 8px 24px rgba(0,0,0,.14);
+}
+body.mu .scard-head .sc-hicon {
+  background: var(--md-sys-color-primary-container, var(--bg));
+  color: var(--md-sys-color-on-primary-container, var(--accent));
+}
+
+/* ---- 卡片里「字又多」的解法：长说明收进一行折叠，控件优先 ---- */
+.sc-more { margin-top: 8px; }
+.sc-more > summary {
+  cursor: pointer; font-size: var(--m3-type-label); color: var(--muted);
+  padding: 8px 0; list-style: none; user-select: none; -webkit-user-select: none;
+}
+.sc-more > summary::-webkit-details-marker { display: none; }
+.sc-more > summary::before { content: '▸ '; }
+.sc-more[open] > summary::before { content: '▾ '; }
+.sc-more .sc-more-body {
+  padding: 4px 0 8px; font-size: var(--m3-type-label);
+  color: var(--muted); line-height: 1.75;
+}
+.sc-more .sc-more-body a { color: var(--accent); word-break: break-all; }
+.sc-more .sc-more-body p { margin-bottom: 6px; }
+.sc-more .sc-more-body code { font-family: Consolas, monospace; }
+.sc-fileline { font-size: 12px; line-height: 1.9; }
+.sc-fileline a { color: var(--accent); word-break: break-all; }
+
+/* ---- 表单类设置：名称在上、控件全宽（左右排会挤窄输入框）---- */
+.sc-field { margin: 0 0 12px; }
+.sc-field label {
+  display: block; font-size: var(--m3-type-label); color: var(--muted); margin-bottom: 4px;
+}
+.sc-field input {
+  width: 100%; min-height: 44px; padding: 10px 12px;
+  border: 1px solid var(--border); border-radius: var(--m3-shape-sm);
+  background: var(--card); color: var(--text); font-size: 14px;
+}
+.sc-field input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.sc-field input::placeholder { color: var(--muted); opacity: .8; }
+.sc-field-row { display: flex; gap: 8px; align-items: center; }
+.sc-field-row input { flex: 1; min-width: 0; }
+.sc-toggle-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  min-height: 48px; padding: 4px 0;
+}
+.sc-toggle-row .sc-tr-label { font-size: 13px; }
+.sc-inline-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.sc-primary {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; min-height: 48px; padding: 12px 16px;
+  border: none; border-radius: var(--m3-shape-full);
+  background: var(--accent); color: #fff; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: transform var(--m3-dur) var(--m3-ease-emphasized);
+}
+.sc-primary:active { transform: scale(.97); }
+.sc-primary .ni { width: 17px; height: 17px; }
+.sc-note { font-size: var(--m3-type-label); color: var(--muted); line-height: 1.65; margin: 8px 0 0; }
+
+/* 手机上按 M3 走 modal bottom sheet：贴底、28dp 顶圆角、drag handle */
+@media (max-width: 600px) {
+  .scard-overlay { align-items: flex-end; }
+  .scard {
+    width: 100%; max-width: 640px; max-height: 88vh;
+    border-radius: var(--m3-shape-xl) var(--m3-shape-xl) 0 0;
+    padding: 12px 20px 20px;
+  }
+  .scard-handle {
+    display: block; width: 32px; height: 4px; border-radius: 2px;
+    background: var(--border); margin: 0 auto 12px;
+  }
+  .sc-entry .sc-s { white-space: normal; }
+}
+
+/* 设置头部也收敛：图标 + 一行提示即可，别一打开先占掉小半屏。
+   彩蛋说明和出处是 LCJ 明确要求留的，只压字号和行距，不删内容。 */
+#settingsModal .modal-header { padding-top: 14px; }
+#settingsModal #settingsAppIcon { width: 52px; height: 52px; }
+#settingsModal .egg-hint { margin: 2px 0 4px; line-height: 1.45; }
+#settingsModal .modal-header .name { margin-top: 3px; font-size: 17px; }
+#settingsModal .modal-body { padding-top: 8px; }
+
 .toast {
   position: fixed; bottom: 30px; left: 50%;
   transform: translateX(-50%) translateY(20px);
@@ -1916,6 +2183,25 @@ body.dark .ai-err { color: #ef9a9a; }
       <div class="name" style="font-size:20px;display:flex;align-items:center;justify-content:center;gap:9px"><svg class="ni lg"><use href="#i-settings" xlink:href="#i-settings"/></svg>设置</div>
     </div>
     <div class="modal-body" id="settingsBody"></div>
+  </div>
+</div>
+
+<!-- 设置小卡片（v0.2.24）：M3 basic dialog，窄屏贴底变 modal bottom sheet -->
+<div class="scard-overlay" id="settingsCardOverlay" onmousedown="overlayPressOn(this, event)" onclick="overlayClickMaybe(this, event, closeSettingsCard)">
+  <div class="scard" role="dialog" aria-modal="true" aria-labelledby="settingsCardTitle">
+    <div class="scard-handle"></div>
+    <div class="scard-head">
+      <span class="sc-hicon" id="settingsCardIcon"><svg class="ni"><use href="#i-settings" xlink:href="#i-settings"/></svg></span>
+      <div class="sc-htx">
+        <h2 id="settingsCardTitle">设置</h2>
+        <p id="settingsCardSub"></p>
+      </div>
+      <button class="scard-close m3-state" onclick="closeSettingsCard()" aria-label="关闭">×</button>
+    </div>
+    <div class="scard-body" id="settingsCardBody"></div>
+    <div class="scard-foot">
+      <button class="m3-text m3-state" onclick="closeSettingsCard()">完成</button>
+    </div>
   </div>
 </div>
 
@@ -4192,7 +4478,7 @@ function wordDictOnLoaded() {
 
 
 // ===== 应用版本 =====
-const APP_VERSION = '0.2.23';
+const APP_VERSION = '0.2.24';
 const APP_UNICODE_VERSION = '17.0';   // 内置区块数据版本
 
 // 更新检查用的版本清单（静态 JSON，由 Cloudflare Pages 托管，仓库根目录 version.json）
@@ -4454,9 +4740,9 @@ function getCategoriesForChar(cp) {
 function openCategoryPicker(cp, ch) {
   const existing = getCategoriesForChar(cp);
   const allCategories = Object.keys(favCategories);
-  
+
   let html = `<div style="margin-bottom:12px"><b>将 "${ch}" 加入分类：</b></div>`;
-  
+
   if (!allCategories.length) {
     html += '<div style="color:var(--muted);margin-bottom:12px">暂无分类，请先创建分类</div>';
   } else {
@@ -4469,12 +4755,12 @@ function openCategoryPicker(cp, ch) {
       </label>`;
     }
   }
-  
+
   html += `<div style="border-top:1px solid var(--border);padding-top:12px;margin-top:12px">
     <input type="text" id="newCatInput" placeholder="新建分类名" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);box-sizing:border-box">
     <button onclick="createAndAddCategory(${cp})" style="margin-top:8px;padding:6px 16px;border:none;border-radius:6px;background:var(--accent);color:white;cursor:pointer">+ 创建并加入</button>
   </div>`;
-  
+
   showModal(ic('folder') + '加入分类', html, '', [{text:'完成',cls:'primary',action:'closeModal()'}]);
 }
 
@@ -7166,20 +7452,20 @@ function showHistory() {
   setTitle('浏览记录', 'clock');
   setActiveNav('history');
   setCount(history.length > 0 ? `共 ${history.length} 条记录` : '');
-  
+
   const bar = document.getElementById('controlBar');
   bar.innerHTML = `
     <button class="toggle-btn" onclick="clearHistory()">${ic('trash')}清除记录</button>
   `;
   bar.style.display = 'flex';
-  
+
   if (history.length === 0) {
     const el = document.getElementById('content');
     el.innerHTML = '<div style="text-align:center;padding:60px;color:var(--muted);font-size:16px">还没有浏览记录<br><br>点击任意字符即可添加到浏览记录</div>';
     document.getElementById('pagination').innerHTML = '';
     return;
   }
-  
+
   renderGrid();
   document.getElementById('contentScroll').scrollTop = 0;
 }
@@ -7391,7 +7677,7 @@ function renderFavorites() {
     renderCategoryList();
     return;
   }
-  
+
   // 查看特定分类
   if (favCategoryMode.startsWith('category:')) {
     const catName = decodeURIComponent(favCategoryMode.split(':')[1]);
@@ -7470,14 +7756,14 @@ function toggleFavGroup(header) {
 function renderCategoryList() {
   const el = document.getElementById('content');
   const catNames = Object.keys(favCategories);
-  
+
   setCount(`共 ${catNames.length} 个分类`);
-  
+
   if (!catNames.length) {
     el.innerHTML = '<div style="text-align:center;padding:60px;color:var(--muted);font-size:16px">还没有创建分类<br><br>点击字符查看详情，然后点击 📁 加入分类</div>';
     return;
   }
-  
+
   let html = '';
   for (const name of catNames.sort()) {
     const cps = favCategories[name] || [];
@@ -7508,10 +7794,10 @@ function renderCategoryDetail(catName) {
   cps = cps.filter(cp => favorites.has(cp));
   currentChars = cps;
   currentPage = 0;
-  
+
   document.title = `📁 ${catName} - Unicode编码查询`;
   setCount(`${catName} (${cps.length} 个字符)`);
-  
+
   if (!cps.length) {
     el.innerHTML = `<div style="text-align:center;padding:60px;color:var(--muted);font-size:16px">分类"${escapeHtml(catName)}"中没有字符<br><br>点击字符详情中的 📁 按钮添加</div>`;
     return;
@@ -7524,15 +7810,15 @@ function renderCategoryDetail(catName) {
 
 function openManageCategories() {
   const catNames = Object.keys(favCategories);
-  
+
   let html = '<div style="margin-bottom:16px"><b>管理分类</b></div>';
-  
+
   // 创建新分类
   html += `<div style="display:flex;gap:8px;margin-bottom:16px">
     <input type="text" id="newCatName" placeholder="新分类名" style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text)">
     <button onclick="manageCreateCategory()" style="padding:8px 16px;border:none;border-radius:8px;background:var(--accent);color:white;cursor:pointer">+ 创建</button>
   </div>`;
-  
+
   // 分类列表
   if (!catNames.length) {
     html += '<div style="text-align:center;padding:20px;color:var(--muted)">暂无分类</div>';
@@ -7548,7 +7834,7 @@ function openManageCategories() {
     }
     html += '</div>';
   }
-  
+
   showModal(ic('settings') + '管理分类', html, '', [{text:'完成',cls:'primary',action:'closeModal()'}]);
 }
 
@@ -10701,51 +10987,64 @@ async function aiPageSend() {
   }
 }
 
-// ---- 设置面板里的配置区 ----
+// ---- 设置面板里的配置区（v0.2.24：表单改成上下排，长说明收进折叠）----
+// 费纸张那条「设置类左右排、表单类上下排」：这里 4 个输入框是有填写顺序的表单，
+// 左右排会把输入框挤窄、错误提示只能塞半列，所以 label 在上、输入全宽。
 function aiSettingsHTML() {
   const hasKey = !!String(aiCfg.key || '').trim();
   const shown = hasKey ? ('已保存（' + String(aiCfg.key).slice(0, 6) + '…' + String(aiCfg.key).slice(-4) + '）') : '未设置';
   return `
     <div class="settings-section" id="aiSettingsBlock">
-      <h3>${ic('bot')}AI 助手</h3>
-      <p>自己接一个大模型，让 AI 帮你解读字符、或者用大白话找字。默认由<b>你的浏览器直接</b>发请求给你填的接口地址，密钥只存在这台设备的浏览器里，本应用不中转、不记录、不上传。</p>
-      <button class="set-switch${aiCfg.on ? ' on' : ''}${_swAnimId === 'ai' ? ' sw-anim' : ''}" onclick="aiToggle()">
-        <span class="track"><span class="thumb"></span></span>
-        <span class="lbl">AI 助手（${aiCfg.on ? '开启' : '关闭'}）</span>
-      </button>
-      <div class="ai-set-row">
+      <h3>${ic('bot')}连接设置</h3>
+      <div class="sc-toggle-row">
+        <span class="sc-tr-label">启用 AI 助手</span>
+        <button class="set-switch${aiCfg.on ? ' on' : ''}${_swAnimId === 'ai' ? ' sw-anim' : ''}" onclick="aiToggle()">
+          <span class="track"><span class="thumb"></span></span>
+          <span class="lbl">${aiCfg.on ? '开启' : '关闭'}</span>
+        </button>
+      </div>
+      <div class="sc-field">
         <label>接口地址</label>
         <input type="text" id="aiBaseInput" value="${escapeHtml(aiCfg.baseUrl)}" placeholder="https://api.deepseek.com/v1" oninput="aiSet('baseUrl', this.value)">
       </div>
-      <div class="ai-set-row">
+      <div class="sc-field">
         <label>模型名</label>
         <input type="text" id="aiModelInput" value="${escapeHtml(aiCfg.model)}" placeholder="deepseek-chat" oninput="aiSet('model', this.value)">
       </div>
-      <div class="ai-set-row">
-        <label>API Key</label>
-        <input type="password" id="aiKeyInput" value="" placeholder="${hasKey ? '已保存，重新输入即可替换' : 'sk-…'}" oninput="aiSet('key', this.value)">
-        <button class="toggle-btn" onclick="aiClearKey()">清除</button>
+      <div class="sc-field">
+        <label>API Key（只存本机）</label>
+        <div class="sc-field-row">
+          <input type="password" id="aiKeyInput" value="" placeholder="${hasKey ? '已保存，重新输入即可替换' : 'sk-…'}" oninput="aiSet('key', this.value)">
+          <button class="m3-text m3-state" onclick="aiClearKey()">清除</button>
+        </div>
       </div>
-      <div class="ai-set-row">
-        <label>代理地址</label>
-        <input type="text" id="aiProxyInput" value="${escapeHtml(aiCfg.proxy)}" placeholder="选填，见下面说明" oninput="aiSet('proxy', this.value)">
+      <div class="sc-field">
+        <label>代理地址（选填）</label>
+        <input type="text" id="aiProxyInput" value="${escapeHtml(aiCfg.proxy)}" placeholder="连不上接口时再填，见下方说明" oninput="aiSet('proxy', this.value)">
       </div>
-      <button class="set-switch${aiCfg.vision ? ' on' : ''}${_swAnimId === 'ai' ? ' sw-anim' : ''}" onclick="aiToggleVision()">
-        <span class="track"><span class="thumb"></span></span>
-        <span class="lbl">AI 视觉（${aiCfg.vision ? '开启' : '关闭'}）——把联网字形图发给模型</span>
-      </button>
-      <p style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.7">开启后，问句里带码点时应用会先从 GlyphWiki 联网拉字形图片（最多 3 张）随消息发给模型，它就能描述字形了。需要模型本身支持看图（如 gpt-4o、glm-4v、qwen-vl-max），纯文字模型会报错，报错就关掉。关着也不影响你自己在「联网字形」按钮里看图。</p>
-      <div class="settings-actions" style="margin-top:8px">
-        <button class="toggle-btn" id="aiTestBtn" onclick="aiTest()">${ic('link')}测试连接</button>
-        <button class="toggle-btn" onclick="aiClearCache()">${ic('trash')}清除回答缓存</button>
+      <div class="sc-toggle-row">
+        <span class="sc-tr-label">AI 视觉（把联网字形图发给模型）</span>
+        <button class="set-switch${aiCfg.vision ? ' on' : ''}${_swAnimId === 'ai' ? ' sw-anim' : ''}" onclick="aiToggleVision()">
+          <span class="track"><span class="thumb"></span></span>
+          <span class="lbl">${aiCfg.vision ? '开启' : '关闭'}</span>
+        </button>
       </div>
-      <p id="aiTestOut" style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.7">Key 当前：${escapeHtml(shown)}</p>
-      <p style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.8">
-        · 走的是 OpenAI 兼容格式（<code>/v1/chat/completions</code>），DeepSeek、通义、智谱、Kimi、OpenAI 各家基本都能填，本地 Ollama 填 <code>http://localhost:11434/v1</code> 也行。<br>
-        · 如果提示「连不上接口」，十有八九是对方不允许浏览器直连（CORS）。这时在「代理地址」里填一个<b>你自己部署</b>的转发地址即可 —— README 里有一份现成的 Cloudflare Worker 脚本，几十行，部署完把地址粘进来；代理是你自己的，密钥仍然只到你手里。<br>
-        · 桌面 exe 版能直连用；安卓 APK 里页面跑在 <code>file://</code> 下，多数接口会拒，建议配代理地址。<br>
-        · 每次问完会缓存结果，同一个问题不重复扣费，最多留 200 条。
-      </p>
+      <div class="sc-inline-actions">
+        <button class="m3-tonal m3-state" id="aiTestBtn" onclick="aiTest()">${ic('link')}测试连接</button>
+        <button class="m3-text m3-state" onclick="aiClearCache()">${ic('trash')}清除回答缓存</button>
+      </div>
+      <p id="aiTestOut" class="sc-note">Key 当前：${escapeHtml(shown)}</p>
+      <details class="sc-more">
+        <summary>使用说明、隐私与常见问题</summary>
+        <div class="sc-more-body">
+          <p>默认由<b>你的浏览器直接</b>发请求给你填的接口地址，密钥只存在这台设备，本应用不中转、不记录、不上传。</p>
+          <p>· 走 OpenAI 兼容格式（<code>/v1/chat/completions</code>），DeepSeek、通义、智谱、Kimi、OpenAI 基本都能填；本地 Ollama 填 <code>http://localhost:11434/v1</code> 也行。</p>
+          <p>· 提示「连不上接口」多半是对方不允许浏览器直连（CORS）。在「代理地址」里填<b>你自己部署</b>的转发地址即可 —— README 里有一份现成的 Cloudflare Worker 脚本，部署完把地址粘进来；代理是你自己的，密钥仍然只到你手里。</p>
+          <p>· 桌面 exe 版能直连；安卓 APK 里页面跑在 <code>file://</code> 下，多数接口会拒，建议配代理地址。</p>
+          <p>· 「AI 视觉」开启后，问句里带码点时会先从 GlyphWiki 拉字形图片（最多 3 张）随消息发给模型，需要模型本身支持看图（如 gpt-4o、glm-4v、qwen-vl-max）；纯文字模型会报错，报错就关掉。关着也不影响你自己点「联网字形」看图。</p>
+          <p>· 每次问完会缓存结果，同一个问题不重复扣费，最多留 200 条。</p>
+        </div>
+      </details>
     </div>
   `;
 }
@@ -10925,7 +11224,9 @@ async function checkUpdate(manual) {
   if (out) {
     out.className = 'update-progress';
     out.textContent = '正在查询…';
-    expandSecOf(out);   // 折叠状态下点了检查更新，自动把「关于本工具」展开给你看结果
+    // v0.2.24：只有用户手动点「检查更新」才把「关于与反馈」卡片弹出来看结果。
+    // 启动时自动查（manual=false）不能弹，否则一打开设置就被卡片糊脸。
+    if (manual) expandSecOf(out);
   }
   try {
     const info = await fetchUpdateInfo();
@@ -11098,6 +11399,7 @@ function showSettings() {
   if (body) body.scrollTop = 0;
 }
 function closeSettings() {
+  closeSettingsCard();   // v0.2.24：设置面板关掉时，子卡片先收回去
   document.getElementById('settingsOverlay').classList.remove('show');
   // 在 AI 页时，刚改过的配置（开关 / Key / 模型）要立刻反映到页面上
   if (currentView === 'ai') renderAIPage();
@@ -11190,6 +11492,211 @@ function eggTouchMove(e) {
   if (t && Math.hypot(t.clientX - _eggPressXY[0], t.clientY - _eggPressXY[1]) > 12) eggPressEnd();
 }
 // ============================================================
+// Material 3 动态取色（v0.2.24）
+// ------------------------------------------------------------
+// M3 的「动态」不是给 5 个预设换色，而是：从一个种子色 → 生成 6 组
+// 13 档色调色板（Primary/Secondary/Tertiary/Neutral/NeutralVariant/Error）
+// → 按「颜色角色」把特定 tone 分配给 UI → 明暗主题只换 tone 不换色相。
+// 组件里一律引用角色，不写死 hex，换任何种子色对比度都还成立。
+// 这里用 HSL 近似 HCT 的 tone（真 HCT 要 CAM16 整套色彩科学，一个单文件
+// 应用不值得拖进来），两端自动降饱和 → 视觉上和官方 tonal palette 一致。
+// 全 ES5 写法，老 WebView 也能跑；不依赖 color-mix()/padStart()。
+// ============================================================
+function mu3Clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+
+function mu3HexToRgb(hex) {
+  var h = String(hex || '').trim().replace(/^#/, '');
+  if (/^[0-9a-f]{3}$/i.test(h)) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  if (!/^[0-9a-f]{6}$/i.test(h)) return null;
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+function mu3RgbToHex(rgb) {
+  var out = '#';
+  for (var i = 0; i < 3; i++) {
+    var v = Math.round(mu3Clamp(rgb[i], 0, 255)).toString(16);
+    out += v.length < 2 ? '0' + v : v;
+  }
+  return out;
+}
+function mu3RgbToHsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  var mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  var h = 0, s = 0, l = (mx + mn) / 2;
+  if (d !== 0) {
+    s = d / (1 - Math.abs(2 * l - 1));
+    if (mx === r) h = ((g - b) / d) % 6;
+    else if (mx === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60; if (h < 0) h += 360;
+  }
+  return [h, s, l];
+}
+function mu3HslToRgb(h, s, l) {
+  h = ((h % 360) + 360) % 360 / 360;
+  s = mu3Clamp(s, 0, 1); l = mu3Clamp(l, 0, 1);
+  if (s === 0) { var v = Math.round(l * 255); return [v, v, v]; }
+  var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  var p = 2 * l - q;
+  function hue2rgb(t) {
+    if (t < 0) t += 1; if (t > 1) t -= 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  }
+  return [hue2rgb(h + 1 / 3) * 255, hue2rgb(h) * 255, hue2rgb(h - 1 / 3) * 255];
+}
+// tone 0=黑 100=白；两端饱和度自然衰减，中间保持种子色的彩度
+function mu3Tone(h, s, tone) {
+  var t = mu3Clamp(tone, 0, 100) / 100;
+  var fade = Math.sin(Math.PI * t);
+  var sat = s * (0.35 + 0.65 * fade);
+  var lig = t;
+  return mu3RgbToHex(mu3HslToRgb(h, sat, lig));
+}
+// 6 组色调色板，每组 13 档 —— 用 M3 官方的 tone 列表（不是等距的 0…100）
+var MU3_TONES = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 99, 100];
+function mu3TonalPalettes(seedHex) {
+  var rgb = mu3HexToRgb(seedHex) || mu3HexToRgb('#6750a4');
+  var hsl = mu3RgbToHsl(rgb[0], rgb[1], rgb[2]);
+  var h = hsl[0], s = hsl[1];
+  var specs = [
+    ['primary', h, s],
+    ['secondary', h, s * 0.32],
+    ['tertiary', h + 60, s * 0.58],
+    ['neutral', h, Math.min(s * 0.10, 0.08)],
+    ['neutralVariant', h, Math.min(s * 0.22, 0.14)],
+    ['error', 4, 0.72]
+  ];
+  var out = {};
+  for (var i = 0; i < specs.length; i++) {
+    var name = specs[i][0], arr = [];
+    for (var t = 0; t < MU3_TONES.length; t++) arr.push(mu3Tone(specs[i][1], specs[i][2], MU3_TONES[t]));
+    out[name] = arr;
+  }
+  return out;
+}
+// 按 M3 官方 tone 映射表生成全套颜色角色（明暗只换 tone，色相/彩度不变）
+function mu3Scheme(seedHex, dark) {
+  var rgb = mu3HexToRgb(seedHex) || mu3HexToRgb('#6750a4');
+  var hsl = mu3RgbToHsl(rgb[0], rgb[1], rgb[2]);
+  var H = {
+    primary: [hsl[0], hsl[1]],
+    secondary: [hsl[0], hsl[1] * 0.32],
+    tertiary: [hsl[0] + 60, hsl[1] * 0.58],
+    neutral: [hsl[0], Math.min(hsl[1] * 0.10, 0.08)],
+    neutralVariant: [hsl[0], Math.min(hsl[1] * 0.22, 0.14)],
+    error: [4, 0.72]
+  };
+  function T(k, tone) { return mu3Tone(H[k][0], H[k][1], tone); }
+  var c = {};
+  if (dark) {
+    c.primary = T('primary', 80); c['on-primary'] = T('primary', 20);
+    c['primary-container'] = T('primary', 30); c['on-primary-container'] = T('primary', 90);
+    c.secondary = T('secondary', 80); c['on-secondary'] = T('secondary', 20);
+    c['secondary-container'] = T('secondary', 30); c['on-secondary-container'] = T('secondary', 90);
+    c.tertiary = T('tertiary', 80); c['on-tertiary'] = T('tertiary', 20);
+    c['tertiary-container'] = T('tertiary', 30); c['on-tertiary-container'] = T('tertiary', 90);
+    c.error = T('error', 80); c['on-error'] = T('error', 20);
+    c['error-container'] = T('error', 30); c['on-error-container'] = T('error', 90);
+    c.surface = T('neutral', 6); c['surface-dim'] = T('neutral', 6); c['surface-bright'] = T('neutral', 24);
+    c['surface-container-lowest'] = T('neutral', 4); c['surface-container-low'] = T('neutral', 10);
+    c['surface-container'] = T('neutral', 12); c['surface-container-high'] = T('neutral', 17);
+    c['surface-container-highest'] = T('neutral', 22);
+    c['on-surface'] = T('neutral', 90); c['on-surface-variant'] = T('neutralVariant', 80);
+    c.outline = T('neutralVariant', 60); c['outline-variant'] = T('neutralVariant', 30);
+    c['inverse-surface'] = T('neutral', 90); c['inverse-on-surface'] = T('neutral', 20);
+    c['inverse-primary'] = T('primary', 40);
+  } else {
+    c.primary = T('primary', 40); c['on-primary'] = T('primary', 100);
+    c['primary-container'] = T('primary', 90); c['on-primary-container'] = T('primary', 10);
+    c.secondary = T('secondary', 40); c['on-secondary'] = T('secondary', 100);
+    c['secondary-container'] = T('secondary', 90); c['on-secondary-container'] = T('secondary', 10);
+    c.tertiary = T('tertiary', 40); c['on-tertiary'] = T('tertiary', 100);
+    c['tertiary-container'] = T('tertiary', 90); c['on-tertiary-container'] = T('tertiary', 10);
+    c.error = T('error', 40); c['on-error'] = T('error', 100);
+    c['error-container'] = T('error', 90); c['on-error-container'] = T('error', 10);
+    c.surface = T('neutral', 98); c['surface-dim'] = T('neutral', 87); c['surface-bright'] = T('neutral', 98);
+    c['surface-container-lowest'] = T('neutral', 100); c['surface-container-low'] = T('neutral', 96);
+    c['surface-container'] = T('neutral', 94); c['surface-container-high'] = T('neutral', 92);
+    c['surface-container-highest'] = T('neutral', 90);
+    c['on-surface'] = T('neutral', 10); c['on-surface-variant'] = T('neutralVariant', 30);
+    c.outline = T('neutralVariant', 50); c['outline-variant'] = T('neutralVariant', 80);
+    c['inverse-surface'] = T('neutral', 20); c['inverse-on-surface'] = T('neutral', 95);
+    c['inverse-primary'] = T('primary', 80);
+  }
+  c.scrim = T('neutral', 0); c.shadow = T('neutral', 0);
+  c.__dark = !!dark; c.__seed = seedHex;
+  return c;
+}
+// 把角色写成 CSS 变量；同时把原有的 --mu-* 兼容变量接到新角色上，
+// 这样 v0.2.20 那批 body.mu 规则不用改也能自动跟随动态取色。
+function mu3Apply(seedHex, dark) {
+  var l = mu3Scheme(seedHex, false), d = mu3Scheme(seedHex, true), cur = dark ? d : l;
+  var r = document.documentElement.style;
+  for (var k in cur) {
+    if (k.slice(0, 2) === '__' || !Object.prototype.hasOwnProperty.call(cur, k)) continue;
+    r.setProperty('--md-sys-color-' + k, cur[k]);
+  }
+  r.setProperty('--mu-bg', l.surface);
+  r.setProperty('--mu-card', l['surface-container-low']);
+  r.setProperty('--mu-dbg', d.surface);
+  r.setProperty('--mu-dcard', d['surface-container-low']);
+  r.setProperty('--mu-soft', l['primary-container']);
+  r.setProperty('--mu-don', d['secondary-container']);
+  r.setProperty('--mu-seed', seedHex);
+  r.setProperty('--mu-scheme', dark ? 'dark' : 'light');
+  return cur;
+}
+// 种子色：用户自定义的优先，否则用 5 个预设里选中的那个
+function mu3Seed() {
+  var custom = '';
+  try { custom = localStorage.getItem('unicode_mu_seed') || ''; } catch (e) {}
+  if (/^#[0-9a-f]{6}$/i.test(custom)) return custom;
+  var pid = lsGetRaw('unicode_mu_color', 'violet');
+  var p = MU_PALETTES.find(function (x) { return x.id === pid; }) || MU_PALETTES[0];
+  return p.primary;
+}
+function mu3IsCustomSeed() {
+  try { return /^#[0-9a-f]{6}$/i.test(localStorage.getItem('unicode_mu_seed') || ''); } catch (e) { return false; }
+}
+// 自定义种子色入口（老 WebView 的 input[type=color] 不可靠，直接收 hex 文本）
+function setMu3Seed(v) {
+  var hex = String(v || '').trim().toLowerCase();
+  if (hex && hex.charAt(0) !== '#') hex = '#' + hex;
+  if (!/^#[0-9a-f]{6}$/i.test(hex)) { showToast('请填 6 位十六进制色值，例如 #4a6fa5'); return false; }
+  try { localStorage.setItem('unicode_mu_seed', hex); } catch (e) {}
+  applyUiStyle();
+  refreshSettingsIfOpen();
+  showToast('已按这个颜色重新生成整套配色');
+  addLog('设置', 'Material You 自定义种子色 ' + hex);
+  return true;
+}
+function clearMu3Seed() {
+  try { localStorage.removeItem('unicode_mu_seed'); } catch (e) {}
+  applyUiStyle();
+  refreshSettingsIfOpen();
+  showToast('已回到预设配色');
+}
+function mu3SeedHtml() {
+  var custom = mu3IsCustomSeed();
+  var cur = custom ? mu3Seed() : '';
+  return '<div class="sc-field" style="margin-top:12px">' +
+    '<label>动态取色 · 自定义种子色（可留空用上面 5 个预设）</label>' +
+    '<div class="sc-field-row">' +
+      '<input type="text" id="muSeedInput" value="' + escapeHtml(cur) + '" placeholder="#4a6fa5" maxlength="7" ' +
+        'onkeydown="if(event.key===\'Enter\'){setMu3Seed(this.value);}">' +
+      '<button class="m3-tonal m3-state" onclick="setMu3Seed(document.getElementById(\'muSeedInput\').value)">生成配色</button>' +
+      (custom ? '<button class="m3-text m3-state" onclick="clearMu3Seed()">还原</button>' : '') +
+    '</div>' +
+    '<p class="sc-note">填一个颜色，整套 primary / container / surface / outline 会按 Material 3 的色调规则重新算一遍，深色模式自动换档；不是只把按钮染个色。</p>' +
+  '</div>' +
+  '<details class="sc-more"><summary>这套配色是怎么来的</summary><div class="sc-more-body">' +
+    '<p>从种子色生成 6 组 13 档色调色板（M3 官方 tone 列表），再按角色分配 tone：浅色 primary=40 / on-primary=100 / primary-container=90，深色换成 80 / 20 / 30。surface 分 lowest / low / default / high / highest 五级，高度靠色调差表达而不是加阴影。所有组件只引用角色名，所以换种子色不用改一行 CSS。</p>' +
+  '</div></details>';
+}
+
+// ============================================================
 // 界面风格：原版 / Material You（v0.2.20）
 // MU 走大圆角 + 色调化表面，主题色先手选（真·动态取色需要原生 API，
 // 网页层拿不到系统配色）。选择存 localStorage，applyUiStyle 挂 body.mu。
@@ -11214,6 +11721,13 @@ function applyUiStyle() {
   r.setProperty('--mu-dbg', p.dbg);
   r.setProperty('--mu-dcard', p.dcard);
   r.setProperty('--mu-don', p.don);
+  // v0.2.24：从种子色生成整套 M3 颜色角色（typeof 守卫让老测试沙箱也能跑）
+  try {
+    if (typeof mu3Apply === 'function') {
+      mu3Apply(typeof mu3Seed === 'function' ? mu3Seed() : p.primary,
+               document.body.classList.contains('dark'));
+    }
+  } catch (e) {}
 }
 function refreshSettingsIfOpen() {
   const so = document.getElementById('settingsOverlay');
@@ -11242,10 +11756,10 @@ function muSwatchesHtml() {
 // ============================================================
 const WHATS_NEW = {
   items: [
-    ['🥚', '彩蛋进度也跟着走了', '图鉴里已发现哪些彩蛋，现在算个人数据：导出备份、跨设备同步、清空都会带上'],
-    ['✅', '收东西也能挑了', '同步预览每一项都有勾选框，接收方可以只收想要的那几项，没勾的本地原样不动'],
-    ['📦', '导入和清空对齐', '「个人数据管理」的导入预览会显示彩蛋条数，清空所有个人数据会连图鉴一起清'],
-    ['🛟', '撤销更完整', '同步前的备份现在连空项目也记，撤销能真正回到同步之前']
+    ['🎨', 'Material You 重做了', '不再是换个圆角：现在从一个种子色生成整套颜色角色，深色模式自动换档，表面高度、状态反馈、形状层级都按 M3 来'],
+    ['🗂', '设置不糊一屏了', '主界面只剩 8 个分组入口，点开才弹一张小卡片；下载数据、API Key 那些长说明全收进折叠'],
+    ['🌈', '配色可以自己给', '除了 5 个预设，还能填一个十六进制颜色当种子，整套配色实时重算'],
+    ['📱', '手机上变底部卡片', '小屏按 M3 的 bottom sheet 贴底弹出，带拖动把手，单手够得着']
   ]
 };
 
@@ -11475,7 +11989,17 @@ function settingsFoldAll(open) {
 // 有结果要给用户看时，把所在区块自动展开（比如更新状态、数据进度）
 function expandSecOf(el) {
   const sec = el && el.closest ? el.closest('.settings-section') : null;
-  if (!sec || !sec.classList.contains('foldable')) return;
+  if (!sec || !sec.classList.contains('foldable')) {
+    // v0.2.24：没有手风琴时，结果所在的小卡片自动弹出来给用户看。
+    // 但渲染设置时 renderQuickDl() 也会调到这里，那时不能弹，否则一打开设置
+    // 就被「关于」卡片糊脸 —— 只有用户主动触发的结果才弹。
+    if (typeof _settingsRendering !== 'undefined' && _settingsRendering) return;
+    try {
+      const p = el && el.closest ? el.closest('[data-panel]') : null;
+      if (p && typeof openSettingsCard === 'function') openSettingsCard(p.getAttribute('data-panel'));
+    } catch (e) {}
+    return;
+  }
   if (!sec.classList.contains('open')) {
     sec.classList.add('open');
     const cfg = settingsFoldCfg();
@@ -11831,6 +12355,97 @@ function fcCopyChar() {
   if (fcCP !== null) copyText(String.fromCodePoint(fcCP));
 }
 
+// ============================================================
+// 设置：分组入口 + 弹出小卡片（v0.2.24）
+// ------------------------------------------------------------
+// 原来 20 多个 .settings-section 全平铺在一屏，下载数据和 AI 助手两处
+// 光说明就上千字。现在主界面只留一张 M3 风格的分组入口列表（单行 56dp），
+// 点开才把对应的一组内容弹成一张小卡片（M3 basic dialog：28dp 圆角、
+// 24dp 内距、surface-container-high、scrim、emphasized 缓动）。
+// 关键：所有 panel 的 DOM 常驻在 #settingsPanelStore 里，只是 hidden；
+// 打开卡片时把节点「移动」进卡片而不是重建 —— 收藏、输入框、进度、
+// 更新状态这些 id 和内联事件全都还在，老功能一个都不用改调用点。
+// ============================================================
+const SETTINGS_CARDS = [
+  { id: 'appearance', group: '外观与交互', icon: 'palette', title: '外观与动画',
+    sub: '深色模式 / 界面风格 / 动画 / 手势',
+    badge: function () { return uiStyle() === 'mu' ? 'Material You' : '原版'; } },
+  { id: 'data', group: '数据与字库', icon: 'download', title: '下载 Unicode 数据',
+    sub: '一键在线获取，或手动上传 4 个 UCD 文件',
+    badge: function () { return unicodeData.source === 'builtin' ? '内置区块' : '完整数据'; } },
+  { id: 'fonts', group: '数据与字库', icon: 'font', title: '字库与字体',
+    sub: '内置字库包 / 安装自己的 TTF、WOFF',
+    badge: function () { return (extFontLoaded || bshFontLoaded) ? '已装字库' : ''; } },
+  { id: 'ai', group: '智能', icon: 'bot', title: 'AI 助手',
+    sub: '接口地址 / 模型名 / API Key / 代理',
+    badge: function () { return String(aiCfg.key || '').trim() ? '已配置' : '未配置'; } },
+  { id: 'sync', group: '个人数据', icon: 'sync', title: '同步个人数据',
+    sub: '取件码 / 导出文件，接收方可逐项挑选' },
+  { id: 'personal', group: '个人数据', icon: 'package', title: '备份与清理',
+    sub: '导出 / 导入 / 清空全部个人数据' },
+  { id: 'about', group: '关于', icon: 'info', title: '关于与反馈',
+    sub: '项目说明 / 更新 / 其他平台版本 / 群聊' },
+  { id: 'maint', group: '维护', icon: 'reset', title: '数据重置与操作日志',
+    sub: '恢复内置数据 / 查看与清空日志' }
+];
+function settingsCardMeta(id) {
+  for (var i = 0; i < SETTINGS_CARDS.length; i++) if (SETTINGS_CARDS[i].id === id) return SETTINGS_CARDS[i];
+  return null;
+}
+function settingsHomeHTML() {
+  var last = '', out = '<div class="sc-home">';
+  for (var i = 0; i < SETTINGS_CARDS.length; i++) {
+    var c = SETTINGS_CARDS[i];
+    if (c.group !== last) { out += '<div class="sc-group">' + c.group + '</div>'; last = c.group; }
+    var badge = '';
+    try { badge = c.badge ? c.badge() : ''; } catch (e) { badge = ''; }
+    out += '<button class="sc-entry m3-state" onclick="openSettingsCard(\'' + c.id + '\')">' +
+      '<span class="sc-ic">' + ic(c.icon) + '</span>' +
+      '<span class="sc-tx"><span class="sc-t">' + c.title + '</span>' +
+      '<span class="sc-s">' + c.sub + '</span></span>' +
+      (badge ? '<span class="sc-badge">' + badge + '</span>' : '') +
+      '<svg class="ni sc-chev"><use href="#i-chev-r" xlink:href="#i-chev-r"/></svg>' +
+    '</button>';
+  }
+  out += '<p class="sc-home-hint">每一项点开是一张小卡片；长说明都收在卡片里的「展开」中，不再一次糊一屏。</p></div>';
+  return out;
+}
+let _settingsCardId = null;
+let _settingsRendering = false;   // 渲染期间的 expandSecOf 不许自动弹卡片
+function openSettingsCard(id) {
+  const panel = document.getElementById('scPanel-' + id);
+  const body = document.getElementById('settingsCardBody');
+  const ov = document.getElementById('settingsCardOverlay');
+  if (!panel || !body || !ov) return;
+  // 换卡片时先把上一张里的 panel 收回仓库，不然两张会叠在一起
+  if (_settingsCardId && _settingsCardId !== id) {
+    const prev = document.getElementById('scPanel-' + _settingsCardId);
+    const store = document.getElementById('settingsPanelStore');
+    if (prev && store) { store.appendChild(prev); prev.hidden = true; }
+  }
+  const meta = settingsCardMeta(id) || SETTINGS_CARDS[0];
+  const t = document.getElementById('settingsCardTitle');
+  const s = document.getElementById('settingsCardSub');
+  const hi = document.getElementById('settingsCardIcon');
+  if (t) t.textContent = meta.title;
+  if (s) s.textContent = meta.sub;
+  if (hi) hi.innerHTML = ic(meta.icon);
+  body.appendChild(panel);            // 移动节点，不重建
+  panel.hidden = false;
+  _settingsCardId = id;
+  ov.classList.add('show');
+  body.scrollTop = 0;
+}
+function closeSettingsCard() {
+  const ov = document.getElementById('settingsCardOverlay');
+  if (!ov || !ov.classList.contains('show')) return;
+  const panel = _settingsCardId && document.getElementById('scPanel-' + _settingsCardId);
+  const store = document.getElementById('settingsPanelStore');
+  if (panel && store) { store.appendChild(panel); panel.hidden = true; }
+  _settingsCardId = null;
+  ov.classList.remove('show');
+}
+
 function renderSettingsBody() {
   const charCount = unicodeData.charMap ? unicodeData.charMap.size : '—';
   const _us = updateStatusState();
@@ -11844,11 +12459,11 @@ function renderSettingsBody() {
   }[unicodeData.source] || unicodeData.source;
 
   document.getElementById('settingsBody').innerHTML = `
-    <div class="settings-fold-bar">
-      <button onclick="settingsFoldAll(true)">全部展开</button>
-      <button onclick="settingsFoldAll(false)">全部收起</button>
-    </div>
-    <div class="settings-section">
+    ${settingsHomeHTML()}
+    <div id="settingsPanelStore" style="display:none">
+
+    <div class="sc-panel" data-panel="data" id="scPanel-data" hidden>
+<div class="settings-section">
       <h3>${ic('db')}Unicode 数据库</h3>
       <div class="settings-row">
         <span class="label">当前版本</span>
@@ -11868,68 +12483,54 @@ function renderSettingsBody() {
       </div>
     </div>
 
-    <div class="settings-section">
-      <h3>${ic('folder')}从文件更新</h3>
-      <p>如果无法访问 CDN，可从 Unicode 官方网站手动下载以下两个文件并上传：</p>
-      <div style="background:var(--bg);border-radius:8px;padding:12px 16px;margin:10px 0;font-size:13px;line-height:1.8;border:1px solid var(--border)">
-        <div style="margin-bottom:6px"><b>${ic('file')}文件 1：UnicodeData.txt</b> <span style="font-size:12px;color:var(--accent)">（Unicode 17.0.0）</span></div>
-        <div style="margin-left:16px">
-          <div>直接下载链接（右键另存为）：</div>
-          <div style="margin:4px 0"><a href="https://www.unicode.org/Public/17.0.0/ucd/UnicodeData.txt" target="_blank" style="word-break:break-all">https://www.unicode.org/Public/17.0.0/ucd/UnicodeData.txt</a></div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">说明：包含所有字符的名称、类别、大小写映射、双向属性等。文件约 2.1 MB，包含 159,801 个字符。</div>
-        </div>
-        <div style="margin:10px 0 6px"><b>${ic('file')}文件 2：Blocks.txt</b> <span style="font-size:12px;color:var(--accent)">（Unicode 17.0.0）</span></div>
-        <div style="margin-left:16px">
-          <div>直接下载链接（右键另存为）：</div>
-          <div style="margin:4px 0"><a href="https://www.unicode.org/Public/17.0.0/ucd/Blocks.txt" target="_blank" style="word-break:break-all">https://www.unicode.org/Public/17.0.0/ucd/Blocks.txt</a></div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">说明：定义 Unicode 17.0 全部 346 个区块名称与起止码点。文件约 11 KB。</div>
-        </div>
-        <div style="margin:10px 0 6px"><b>${ic('file')}文件 3：Scripts.txt</b> <span style="font-size:12px;color:var(--accent)">（可选）</span></div>
-        <div style="margin-left:16px">
-          <div style="margin:4px 0"><a href="https://www.unicode.org/Public/17.0.0/ucd/Scripts.txt" target="_blank" style="word-break:break-all">https://www.unicode.org/Public/17.0.0/ucd/Scripts.txt</a></div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">说明：文字系统属性（sc / scx）。文件约 200 KB。</div>
-        </div>
-        <div style="margin:10px 0 6px"><b>${ic('file')}文件 4：LineBreak.txt</b> <span style="font-size:12px;color:var(--accent)">（可选）</span></div>
-        <div style="margin-left:16px">
-          <div style="margin:4px 0"><a href="https://www.unicode.org/Public/17.0.0/ucd/LineBreak.txt" target="_blank" style="word-break:break-all">https://www.unicode.org/Public/17.0.0/ucd/LineBreak.txt</a></div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">说明：断行类别属性（lb）。文件约 180 KB。</div>
-        </div>
-        <div style="margin-top:10px;padding-top:8px;border-top:1px dashed var(--border);font-size:12px;color:var(--muted)">
-          ${ic('folder')}备用入口（含所有 UCD 文件）：<br>
-          <a href="https://www.unicode.org/Public/17.0.0/ucd/" target="_blank" style="word-break:break-all">https://www.unicode.org/Public/17.0.0/ucd/</a><br>
-          <span style="margin-top:4px;display:inline-block">${ic('hash')}当前最新版本：<a href="https://www.unicode.org/Public/UCD/latest/ucd/" target="_blank" style="word-break:break-all">https://www.unicode.org/Public/UCD/latest/ucd/</a>（自动跳转最新版）</span>
-        </div>
-      </div>
-      <div style="margin:12px 0 4px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:10px">
-        <button id="onlineFetchBtn" class="tp-btn" onclick="fetchOnlineUCD()" style="width:100%;padding:12px;font-size:15px;font-weight:600">${ic('download')}一键在线获取完整 Unicode 数据</button>
-        <p style="font-size:11px;color:var(--muted);margin:8px 0 0;line-height:1.7">自动从本站拉取 UnicodeData / Blocks / Scripts / LineBreak 全部 4 个数据文件并解析保存，无需手动下载上传。约 2.6 MB，视网速需数秒到半分钟。</p>
-      </div>
-      <div style="margin:12px 0 4px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:10px">
-        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">手动上传（可选）：已有从官网下载好的 UCD 文件，可直接上传，立即生效</div>
-        <div class="settings-actions">
-          <label class="file-upload-btn">
-            ${ic('file')}上传 UnicodeData.txt
-            <input type="file" accept=".txt,text/plain" onchange="uploadUCDFile(event)" style="display:none">
-          </label>
-          <label class="file-upload-btn">
-            ${ic('file')}上传 Blocks.txt
-            <input type="file" accept=".txt,text/plain" onchange="uploadBlocksFile(event)" style="display:none">
-          </label>
-          <label class="file-upload-btn">
-            ${ic('file')}上传 Scripts.txt
-            <input type="file" accept=".txt,text/plain" onchange="uploadScriptsFile(event)" style="display:none">
-          </label>
-          <label class="file-upload-btn">
-            ${ic('file')}上传 LineBreak.txt
-            <input type="file" accept=".txt,text/plain" onchange="uploadLineBreakFile(event)" style="display:none">
-          </label>
-        </div>
-        <p style="font-size:11px;color:var(--muted);margin:10px 0 0;line-height:1.7;padding-top:8px;border-top:1px dashed var(--border)">💡 Scripts.txt 提供文字系统（sc / scx）属性，LineBreak.txt 提供断行类别（lb）属性。两者都是可选的，但上传后详情弹窗的「高级属性」才会完整显示。下载链接见本区块上方。</p>
-      </div>
+        <div class="settings-section">
+      <h3>${ic('download')}下载数据</h3>
+      <p>默认内置 Unicode 17.0 区块定义；想要完整字符属性，一键拉取 4 个 UCD 文件即可。</p>
+      <button id="onlineFetchBtn" class="sc-primary m3-state m3-on-primary" onclick="fetchOnlineUCD()">${ic('download')}一键在线获取完整 Unicode 数据</button>
+      <p class="sc-note">约 2.6 MB，自动解析并存到本机，APK / 桌面版离线也能用。</p>
       <div id="fileProgress" class="update-progress${settingsFlash && settingsFlash.type ? ' ' + settingsFlash.type : ''}" style="${settingsFlash ? 'display:block' : 'display:none'}">${settingsFlash ? escapeHtml(settingsFlash.text) : ''}</div>
+      <details class="sc-more">
+        <summary>手动下载 / 上传 UCD 文件</summary>
+        <div class="sc-more-body">
+          <p>官网 4 个文件（右键另存为），或者把已下载好的直接上传：</p>
+          <div class="sc-fileline">① <a href="https://www.unicode.org/Public/17.0.0/ucd/UnicodeData.txt" target="_blank">UnicodeData.txt</a> — 名称、类别、大小写映射，约 2.1 MB / 159,801 字</div>
+          <div class="sc-fileline">② <a href="https://www.unicode.org/Public/17.0.0/ucd/Blocks.txt" target="_blank">Blocks.txt</a> — 346 个区块的起止码点，约 11 KB</div>
+          <div class="sc-fileline">③ <a href="https://www.unicode.org/Public/17.0.0/ucd/Scripts.txt" target="_blank">Scripts.txt</a> — 文字系统 sc / scx，约 200 KB（可选）</div>
+          <div class="sc-fileline">④ <a href="https://www.unicode.org/Public/17.0.0/ucd/LineBreak.txt" target="_blank">LineBreak.txt</a> — 断行类别 lb，约 180 KB（可选）</div>
+          <div class="settings-actions" style="margin-top:8px">
+            <label class="file-upload-btn">
+              ${ic('file')}上传 UnicodeData.txt
+              <input type="file" accept=".txt,text/plain" onchange="uploadUCDFile(event)" style="display:none">
+            </label>
+            <label class="file-upload-btn">
+              ${ic('file')}上传 Blocks.txt
+              <input type="file" accept=".txt,text/plain" onchange="uploadBlocksFile(event)" style="display:none">
+            </label>
+            <label class="file-upload-btn">
+              ${ic('file')}上传 Scripts.txt
+              <input type="file" accept=".txt,text/plain" onchange="uploadScriptsFile(event)" style="display:none">
+            </label>
+            <label class="file-upload-btn">
+              ${ic('file')}上传 LineBreak.txt
+              <input type="file" accept=".txt,text/plain" onchange="uploadLineBreakFile(event)" style="display:none">
+            </label>
+          </div>
+          <p style="margin-top:8px">Scripts / LineBreak 是可选的，上传后详情弹窗的「高级属性」才会完整显示。</p>
+        </div>
+      </details>
+      <details class="sc-more">
+        <summary>官网备用入口</summary>
+        <div class="sc-more-body">
+          <p>${ic('folder')}含全部 UCD 文件的目录：<a href="https://www.unicode.org/Public/17.0.0/ucd/" target="_blank">https://www.unicode.org/Public/17.0.0/ucd/</a></p>
+          <p>${ic('hash')}自动跳转最新版：<a href="https://www.unicode.org/Public/UCD/latest/ucd/" target="_blank">https://www.unicode.org/Public/UCD/latest/ucd/</a></p>
+        </div>
+      </details>
     </div>
 
-    <div class="settings-section">
+    </div>
+
+    <div class="sc-panel" data-panel="appearance" id="scPanel-appearance" hidden>
+<div class="settings-section">
       <h3>${ic('shield')}管理模式</h3>
       <p>进入管理模式后，可编辑字符含义和字典信息。退出后仅可查看，防止误操作。</p>
       <button class="set-switch${manageMode ? ' on' : ''}${_swAnimId === 'manage' ? ' sw-anim' : ''}" onclick="toggleManageMode()">
@@ -11955,6 +12556,7 @@ function renderSettingsBody() {
         <button class="anim-seg-btn${uiStyle() === 'mu' ? ' on' : ''}" onclick="setUiStyle('mu')">Material You</button>
       </div>
       ${uiStyle() === 'mu' ? muSwatchesHtml() : ''}
+      ${uiStyle() === 'mu' ? mu3SeedHtml() : ''}
     </div>
 
     <div class="settings-section">
@@ -11981,7 +12583,11 @@ function renderSettingsBody() {
       </button>
     </div>
 
-    <div class="settings-section">
+
+    </div>
+
+    <div class="sc-panel" data-panel="fonts" id="scPanel-fonts" hidden>
+<div class="settings-section">
       <h3>${ic('font')}内置字库包</h3>
       <p>系统字体覆盖不到的字符，装个字库包补上；装好的字库除了在界面上补缺字，还会出现在<b>字符详情 → 字体对比</b>里，当「字库全」的参照系。</p>
 
@@ -12013,6 +12619,37 @@ function renderSettingsBody() {
     </div>
 
     <div class="settings-section">
+      <h3>${ic('font')}外置字体</h3>
+      <p>安装自定义字体（TTF/WOFF/WOFF2），用于字符显示。安装后全局生效，字体数据存储在浏览器 IndexedDB 中。</p>
+      <div class="settings-actions" style="margin-top:8px">
+        <label class="file-upload-btn">
+          ${ic('font')}安装字体文件
+          <input type="file" accept=".ttf,.woff,.woff2,font/ttf,font/woff,font/woff2" onchange="installFont(this.files[0]);this.value='';" style="display:none">
+        </label>
+      </div>
+      <div id="fontList" style="margin-top:12px">
+        ${customFonts.length === 0
+          ? '<p style="color:var(--muted);font-size:13px">尚未安装任何外置字体</p>'
+          : customFonts.map(f => `
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;margin-bottom:6px">
+              <span style="font-size:18px">${ic('font','lg')}</span>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:600;font-size:14px">${escapeHtml(f.name)}</div>
+                <div style="font-size:11px;color:var(--muted)">${f.type.split('/').pop().toUpperCase()} · ${formatSize(f.size)} · 安装于 ${new Date(f.addedAt).toLocaleDateString()}</div>
+              </div>
+              <span style="font-family:'CustomFont_${f.name.replace(/'/g, '')}';font-size:20px;min-width:36px;text-align:center">永字 Aa</span>
+              <button class="settings-reset-btn" style="padding:4px 10px;font-size:12px" onclick="removeFont('${escapeJsAttr(f.name)}')">卸载</button>
+            </div>
+          `).join('')
+        }
+      </div>
+    </div>
+
+
+    </div>
+
+    <div class="sc-panel" data-panel="sync" id="scPanel-sync" hidden>
+<div class="settings-section">
       <h3>${ic('sync')}同步个人数据</h3>
       <p>先把下面要带走的内容勾上（打勾的才同步），再选一种搬法：<b>取件码</b>——内容在本机加密后上传，另一台设备 10 分钟内输入这 6 位数字即可领走；<b>导出 / 导入文件</b>——完全不联网，自己用微信、数据线或隔空投送传过去。<b>领取的一方还能再挑一次</b>：预览表里每一项都有勾选框，不想收的取消勾选，本地原样不动，最后再决定「合并」还是「完全覆盖」。</p>
       <div class="sync-list">
@@ -12043,36 +12680,19 @@ function renderSettingsBody() {
       <button class="settings-reset-btn" onclick="undoLastSync()">${ic('reset')}撤销上次同步</button>
     </div>
 
-    ${aiSettingsHTML()}
 
-    <div class="settings-section">
-      <h3>${ic('font')}外置字体</h3>
-      <p>安装自定义字体（TTF/WOFF/WOFF2），用于字符显示。安装后全局生效，字体数据存储在浏览器 IndexedDB 中。</p>
-      <div class="settings-actions" style="margin-top:8px">
-        <label class="file-upload-btn">
-          ${ic('font')}安装字体文件
-          <input type="file" accept=".ttf,.woff,.woff2,font/ttf,font/woff,font/woff2" onchange="installFont(this.files[0]);this.value='';" style="display:none">
-        </label>
-      </div>
-      <div id="fontList" style="margin-top:12px">
-        ${customFonts.length === 0
-          ? '<p style="color:var(--muted);font-size:13px">尚未安装任何外置字体</p>'
-          : customFonts.map(f => `
-            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;margin-bottom:6px">
-              <span style="font-size:18px">${ic('font','lg')}</span>
-              <div style="flex:1;min-width:0">
-                <div style="font-weight:600;font-size:14px">${escapeHtml(f.name)}</div>
-                <div style="font-size:11px;color:var(--muted)">${f.type.split('/').pop().toUpperCase()} · ${formatSize(f.size)} · 安装于 ${new Date(f.addedAt).toLocaleDateString()}</div>
-              </div>
-              <span style="font-family:'CustomFont_${f.name.replace(/'/g, '')}';font-size:20px;min-width:36px;text-align:center">永字 Aa</span>
-              <button class="settings-reset-btn" style="padding:4px 10px;font-size:12px" onclick="removeFont('${escapeJsAttr(f.name)}')">卸载</button>
-            </div>
-          `).join('')
-        }
-      </div>
+
+
     </div>
 
-    <div class="settings-section">
+    <div class="sc-panel" data-panel="ai" id="scPanel-ai" hidden>
+
+    ${aiSettingsHTML()}
+
+    </div>
+
+    <div class="sc-panel" data-panel="about" id="scPanel-about" hidden>
+<div class="settings-section">
       <h3>${ic('users')}Unicode 讨论群聊</h3>
       <p>欢迎加入 Unicode 爱好者 QQ 群，一起交流学习！</p>
       <a class="qq-group-card" style="margin-top:12px" href="https://qun.qq.com/universal-share/share?ac=1&authKey=il13tFlVGP2ba1SBNVjhPQayM%2BoaP5Ec%2Bwsxl1doDuaMr0wpMzqQG4jVJfprOUz1&busi_data=eyJncm91cENvZGUiOiIxMDM3Mzc2ODM3IiwidG9rZW4iOiIxVWdFMENxdGxkanExMS9kcEhoQ20rNHBOdjg4WHVzdHJFd3B5SEs2WW1HcnJJSFoxaWQ3cVVEZnFXcWJXbnFqIiwidWluIjoiMzc3MjM4NzM3NyJ9&data=uBiHcZOzTTtvs1fdNK5xioyMpjTM7s2B-CyogutlyVoJ-LtuWmYGOJncDtExpMBKru52Byufwkc3Ylt021XF4x4ytFuX3JTKQdfse_Elal0&svctype=5&tempid=h5_group_info" target="_blank" rel="noopener" title="点击加入 QQ 群">
@@ -12119,9 +12739,12 @@ function renderSettingsBody() {
           <div style="font-size:12px;color:var(--muted)">基于 Unicode ${APP_UNICODE_VERSION} · 练手项目</div>
         </div>
       </div>
-      <p style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.8">
-        一个纯前端的 Unicode 字符查询与浏览工具：支持智能搜索、字符对比、批量编解码互转、按平面/区块浏览全部 346 个区块、随机字符、收藏分组管理、字符含义字典与图片导出。单 HTML 文件，你的收藏 / 字义 / 记录全部存在本机、不上传。除了你自己主动触发的功能（在线获取数据、同步、AI 助手、检查更新）以外，不产生任何网络请求。
-      </p>
+      <details class="sc-more">
+        <summary>这个工具是做什么的</summary>
+        <div class="sc-more-body">
+          <p>一个纯前端的 Unicode 字符查询与浏览工具：支持智能搜索、字符对比、批量编解码互转、按平面/区块浏览全部 346 个区块、随机字符、收藏分组管理、字符含义字典与图片导出。单 HTML 文件，你的收藏 / 字义 / 记录全部存在本机、不上传。除了你自己主动触发的功能（在线获取数据、同步、AI 助手、检查更新）以外，不产生任何网络请求。</p>
+        </div>
+      </details>
 
       <details style="margin-top:10px">
         <summary style="cursor:pointer;font-size:13px;font-weight:600;user-select:none">${ic('info')}项目状态与免责声明</summary>
@@ -12154,7 +12777,14 @@ function renderSettingsBody() {
       <details style="margin-top:10px">
         <summary style="cursor:pointer;font-size:13px;font-weight:600;user-select:none">${ic('log')}更新日志</summary>
         <div class="app-changelog">
-          <h4>v0.2.23 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <h4>v0.2.24 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <ul>
+            <li><b>Material You 从头重做</b>：以前只是把主题色换掉、把一堆控件塞成胶囊，这次按 Material 3 规范补齐了真正的骨架 —— 从种子色生成 6 组 13 档<b>色调色板</b>，按<b>颜色角色</b>（primary / on-primary / container / surface / outline…）分配给组件；浅色 primary 用 tone 40、深色换 tone 80，色相不变、对比度始终成立。表面高度改成 surface-container 五级加 primary 色调，不再靠浓阴影；形状按 xs/sm/md/lg/xl/full 分档而不是全场一个圆角；每个可点元素有 hover 8% / focus 10% / pressed 10% 的<b>状态层</b>；动效换 emphasized 缓动</li>
+            <li><b>动态取色真的能取</b>：除了原来的 5 个预设，界面风格里可以直接填一个 <code>#RRGGBB</code> 当种子色，整套配色（按钮、卡片、边框、文字、深色模式）实时重新生成；旁边写了这套配色是怎么算出来的</li>
+            <li><b>设置界面改成小卡片</b>：主界面只留 8 个分组入口（外观 / 下载数据 / 字库 / AI 助手 / 同步 / 备份 / 关于 / 维护），点开才弹出一张 M3 小卡片（28dp 圆角、24dp 内距），手机上是贴底的 bottom sheet。所有原有功能、输入框、进度提示都还在，只是不再一次摊一屏</li>
+            <li><b>「下载数据」和「API Key」不再字挤字</b>：下载卡片只留一个主按钮「一键在线获取」，4 个官网链接和上传按钮收进折叠；AI 助手改成名称在上、输入框全宽的上下排表单，接口格式 / CORS / 各端差异 / 缓存那一大段收进「使用说明」</li>
+          </ul>
+          <h4>v0.2.23</h4>
           <ul>
             <li><b>彩蛋图鉴进度正式算个人数据</b>：以前辛辛苦苦找齐的彩蛋，换台设备、导个备份就全没了。现在「已发现哪些彩蛋」跟收藏、字义一样，会一起写进导出的 JSON、一起走取件码 / 文件同步，自动备份也会带上</li>
             <li><b>接收方也能挑要收什么</b>：同步预览表每一项前面多了勾选框，默认全收，可以只留收藏、把浏览记录或彩蛋进度之类的勾掉；<b>没勾的项目本地一个字节都不动</b>，「合并」「完全覆盖」都只作用于勾选项，还多了「接收全部」一键开关</li>
@@ -12424,7 +13054,11 @@ function renderSettingsBody() {
       <p style="margin-top:10px;font-size:11px;color:var(--muted)">⚠️ 本工具仅为学习练手之作，分区信息与字符含义可能存在不准确之处，请以 Unicode 官方数据为准。</p>
     </div>
 
-    <div class="settings-section">
+
+    </div>
+
+    <div class="sc-panel" data-panel="personal" id="scPanel-personal" hidden>
+<div class="settings-section">
       <h3>${ic('download')}个人数据管理</h3>
       <p>个人数据包括：我的收藏、自定义字义、自定义字典、收藏分类、浏览记录、最近搜索，以及<b>彩蛋图鉴进度</b>。可导出为独立文件备份或分享，清空时会一并清掉。</p>
       <div class="settings-actions">
@@ -12439,7 +13073,11 @@ function renderSettingsBody() {
       ${window.showSaveFilePicker ? '<p style="font-size:11px;color:var(--muted);margin-top:6px">💡 「另存为」可选择任意保存位置；「下载」保存到浏览器默认下载目录</p>' : '<p style="font-size:11px;color:var(--muted);margin-top:6px">💡 您的浏览器不支持「另存为」，仅可使用下载方式</p>'}
     </div>
 
-    <div class="settings-section">
+
+    </div>
+
+    <div class="sc-panel" data-panel="maint" id="scPanel-maint" hidden>
+<div class="settings-section">
       <h3>${ic('reset')}Unicode 数据重置</h3>
       <p>清除已下载/上传的 Unicode 数据，恢复为内置 Unicode 17.0 区块数据。</p>
       <button class="settings-reset-btn" onclick="resetUnicodeData()">恢复内置数据</button>
@@ -12456,12 +13094,21 @@ function renderSettingsBody() {
       </div>
     </div>
 
+    </div>
+
+    </div>
+
   `;
   // N5：提示已经画进 DOM 了，状态清空——否则关掉设置再打开，旧的「✅ 已加载」还挂着
   settingsFlash = null;
   // 折叠初始化放在 innerHTML 之后：包 .sec-body、挂箭头、按记忆恢复展开状态
-  initSettingsFold(document.getElementById('settingsBody'));
+  // v0.2.24：入口列表 + 小卡片，不再对整屏做手风琴折叠
+  // renderQuickDl 内部会调 expandSecOf，渲染阶段不能让它把「关于」卡片弹出来
+  _settingsRendering = true;
   renderQuickDl();
+  _settingsRendering = false;
+  // 开关切换会重渲染设置；卡片开着时把新 DOM 重新挂回去，别把用户弹回主列表
+  if (_settingsCardId) openSettingsCard(_settingsCardId);
 }
 
 // 记录刚被点动的开关 id（manage/dark/anim），重渲染时只给它播一次滑块动画
@@ -12485,6 +13132,10 @@ function applyTheme(dark) {
   document.body.classList.toggle('dark', !!dark);
   const sw = document.getElementById('themeSwitch');
   if (sw) sw.checked = !!dark;
+  // v0.2.24：明暗切换要按新 tone 重新映射颜色角色（深色不是把浅色反一下）
+  try {
+    if (typeof mu3Apply === 'function' && typeof mu3Seed === 'function') mu3Apply(mu3Seed(), !!dark);
+  } catch (e) {}
 }
 function toggleTheme() {
   const on = document.getElementById('themeSwitch').checked;
@@ -12692,6 +13343,12 @@ document.addEventListener('keydown', (e) => {
   const zoom = document.getElementById('zoomOverlay');
   if (zoom.classList.contains('show')) {
     if (e.key === 'Escape') { e.preventDefault(); closeZoomPreview(); }
+    return;
+  }
+  // v0.2.24：设置里的小卡片层级高于设置面板，Esc 先收卡片
+  const sc = document.getElementById('settingsCardOverlay');
+  if (sc.classList.contains('show')) {
+    if (e.key === 'Escape') { e.preventDefault(); closeSettingsCard(); }
     return;
   }
   // 设置面板
