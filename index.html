@@ -1987,6 +1987,24 @@ function eggMark(id) {
   }, 450);
   return true;
 }
+// v0.2.23：导出 / 导入 / 同步 / 清空都走这里，保证 localStorage 与内存缓存不脱节。
+// 只认注册表里真实存在的 id，挡掉脏数据把图鉴计数搞乱。
+function eggSetFoundIds(arr) {
+  var clean = [], seen = {};
+  var src = Array.isArray(arr) ? arr : [];
+  for (var i = 0; i < src.length; i++) {
+    var id = src[i];
+    if (typeof id !== 'string' || seen[id] || !eggById(id)) continue;
+    seen[id] = 1;
+    clean.push(id);
+  }
+  _eggFoundCache = new Set(clean);
+  try {
+    if (clean.length) localStorage.setItem(EGG_FOUND_STORE, JSON.stringify(clean));
+    else localStorage.removeItem(EGG_FOUND_STORE);
+  } catch (e) {}
+  return clean;
+}
 function eggFire(id, arg) {
   var e = eggById(id);
   if (!e) return false;
@@ -2293,7 +2311,8 @@ function eggListOpen() {
     + '<b>全部效果里只有 1 个是满屏字符雨</b>（科乐美那个经典款），剩下的各有各的花样。</p>'
     + '<div class="egg-progress"><i style="width:' + Math.round(n * 100 / EGGS.length) + '%"></i></div>'
     + '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">已发现 <b style="color:var(--accent)">' + n + '</b> / ' + EGGS.length
-    + '　·　① 图标翻面这个点子是学 <b>字统网 zi.tools</b> 的，没照抄</div>';
+    + '　·　① 图标翻面这个点子是学 <b>字统网 zi.tools</b> 的，没照抄'
+    + '<br>② 这个进度算个人数据，导出 / 导入 / 同步 / 清空都会带着它走</div>';
   for (var c = 0; c < EGG_CATS.length; c++) {
     var cat = EGG_CATS[c];
     html += '<div style="margin-top:12px;font-size:12px;font-weight:700;color:var(--muted)">' + cat + '</div>';
@@ -4173,7 +4192,7 @@ function wordDictOnLoaded() {
 
 
 // ===== 应用版本 =====
-const APP_VERSION = '0.2.22';
+const APP_VERSION = '0.2.23';
 const APP_UNICODE_VERSION = '17.0';   // 内置区块数据版本
 
 // 更新检查用的版本清单（静态 JSON，由 Cloudflare Pages 托管，仓库根目录 version.json）
@@ -5101,7 +5120,7 @@ async function resetUnicodeData() {
 
 // 清空所有个人数据（收藏/字义/浏览记录/最近搜索）
 async function clearAllUserData() {
-  const step1 = await uiConfirm('⚠️ 确定清空所有个人数据？\n\n将清除以下内容：\n• 我的收藏\n• 自定义字义\n• 自定义字典\n• 收藏分类\n• 浏览记录\n• 最近搜索\n• 操作日志', { danger: true, okText: '继续' });
+  const step1 = await uiConfirm('⚠️ 确定清空所有个人数据？\n\n将清除以下内容：\n• 我的收藏\n• 自定义字义\n• 自定义字典\n• 收藏分类\n• 浏览记录\n• 最近搜索\n• 彩蛋图鉴进度（含小游戏记录）\n• 操作日志', { danger: true, okText: '继续' });
   if (!step1) return;
   const step2 = await uiConfirm('❗ 二次确认\n\n此操作不可撤销，所有个人数据将永久丢失！\n\n如需保留，请先在设置中"导出个人数据"备份。\n\n确定继续吗？', { danger: true, okText: '全部清空' });
   if (!step2) return;
@@ -5112,6 +5131,7 @@ async function clearAllUserData() {
   history.length = 0;
   recentSearches = [];
   appLogs = [];
+  try { eggSetFoundIds([]); } catch (e) {}   // v0.2.23：图鉴进度也是个人数据
   try {
     localStorage.removeItem('unicode_favorites');
     localStorage.removeItem('unicode_custom_meanings');
@@ -5122,6 +5142,9 @@ async function clearAllUserData() {
     localStorage.removeItem('managePin');
     localStorage.removeItem('manageMode');
     localStorage.removeItem('unicode_logs');
+    localStorage.removeItem('unicode_egg_best');
+    localStorage.removeItem('unicode_egg_day_v2');
+    localStorage.removeItem('unicode_egg_name');
   } catch(e) {}
   updateFavCount();
   refreshSettingsDisplay();
@@ -5134,7 +5157,7 @@ async function clearAllUserData() {
 function buildExportData() {
   return {
     _type: 'unicode-app-user-data',
-    _version: 3,
+    _version: 4,
     _exportedAt: new Date().toISOString(),
     favorites: [...favorites],
     customMeanings: customMeanings,
@@ -5142,6 +5165,7 @@ function buildExportData() {
     favCategories: favCategories,
     history: history,
     recentSearches: recentSearches,
+    eggFound: Array.from(eggFoundSet()),   // v0.2.23：彩蛋图鉴已发现记录
   };
 }
 
@@ -5248,7 +5272,8 @@ function importUserData(event) {
         + `• 自定义字典: ${objCnt(data.customWordDict)} 条\n`
         + `• 收藏分类: ${objCnt(data.favCategories)} 个\n`
         + `• 浏览记录: ${cnt(data.history)} 条\n`
-        + `• 最近搜索: ${cnt(data.recentSearches)} 条\n\n`
+        + `• 最近搜索: ${cnt(data.recentSearches)} 条\n`
+        + `• 彩蛋图鉴: ${cnt(data.eggFound)} / ${EGGS.length} 个\n\n`
         + '确定继续？', { okText: '导入' });
       if (!ok) { event.target.value = ''; return; }
 
@@ -5293,6 +5318,11 @@ function importUserData(event) {
           for (const k of Object.keys(c)) if (isNumList(c[k])) favCategories[k] = c[k];
           saveFavCategories();
         } else skipped.push('收藏分类');
+      }
+      if ('eggFound' in data) {
+        // v0.2.23：导入语义是「有就替换」，所以直接用文件里的图鉴记录覆盖
+        if (Array.isArray(data.eggFound)) eggSetFoundIds(data.eggFound);
+        else skipped.push('彩蛋图鉴');
       }
       updateFavCount();
       refreshSettingsDisplay();
@@ -9235,8 +9265,9 @@ const SYNC_ITEMS = [
   { key: 'worddict',   label: '自定义字典', storage: 'unicode_custom_word_dict', kind: 'map'  },
   { key: 'history',    label: '浏览记录',   storage: 'unicode_history',          kind: 'list' },
   { key: 'searches',   label: '最近搜索',   storage: 'recentSearches',           kind: 'list' },
+  { key: 'eggs',       label: '彩蛋图鉴',   storage: 'unicode_egg_found_v2',     kind: 'list' },
 ];
-const SYNC_ON_BY_DEFAULT = { favorites: true, categories: true, meanings: true, worddict: true, history: false, searches: false };
+const SYNC_ON_BY_DEFAULT = { favorites: true, categories: true, meanings: true, worddict: true, history: false, searches: false, eggs: true };
 let syncSelection = Object.assign({}, SYNC_ON_BY_DEFAULT);
 let syncLastPayload = null;      // 待确认的对方数据
 let syncCodeTimer = null;
@@ -9258,12 +9289,13 @@ function syncCountOf(item, val) {
   return (val && typeof val === 'object') ? Object.keys(val).length : 0;
 }
 
-function buildSyncPayload(sel) {
+function buildSyncPayload(sel, includeEmpty) {
   const items = {};
   for (const it of SYNC_ITEMS) {
     if (!sel[it.key]) continue;
     const v = syncReadItem(it);
-    if (syncCountOf(it, v) === 0) continue;
+    // 备份快照要连「空的」也记下来，否则撤销时没法把同步后新增的项清回去
+    if (!includeEmpty && syncCountOf(it, v) === 0) continue;
     items[it.key] = v;
   }
   return { app: 'unicode-chaxun', v: 1, at: Date.now(), items: items };
@@ -9420,7 +9452,9 @@ function showSyncPreview(payload, source) {
   const rows = syncPayloadSummary(payload);
   if (!rows.length) { showToast('对方没有可同步的内容'); return; }
   const body = rows.map(r =>
-    '<tr><td style="padding:6px 8px">' + escapeHtml(r.label) + '</td>' +
+    '<tr><td style="padding:6px 8px"><label style="display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap">' +
+    '<input type="checkbox" class="sync-recv-chk" data-recv-key="' + r.key + '" checked onchange="syncRecvAllState()">' +
+    escapeHtml(r.label) + '</label></td>' +
     '<td style="padding:6px 8px;text-align:right;color:#2e7d32;font-weight:600">' + r.remote + '</td>' +
     '<td style="padding:6px 8px;text-align:right;color:var(--muted)">' + r.local + '</td></tr>'
   ).join('');
@@ -9436,20 +9470,58 @@ function showSyncPreview(payload, source) {
       `<div class="modal-header"><div class="name" style="font-size:18px">${ic('sync')}同步预览</div></div>` +
       '<div class="modal-body" style="padding-top:0">' +
         '<p style="font-size:12px;color:var(--muted);margin:0 0 10px">来源：' + escapeHtml(source) + '</p>' +
+        '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;font-size:12px">' +
+          '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none">' +
+            '<input type="checkbox" id="syncRecvAll" checked onchange="syncRecvToggleAll(this)">接收全部' +
+          '</label>' +
+          '<span style="color:var(--muted)">不想收的项目把勾去掉，本地原样不动</span>' +
+        '</div>' +
         '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
-          '<tr style="color:var(--muted);font-size:12px"><th style="text-align:left;padding:4px 8px">项目</th>' +
+          '<tr style="color:var(--muted);font-size:12px"><th style="text-align:left;padding:4px 8px">接收（可取消勾选）</th>' +
           '<th style="text-align:right;padding:4px 8px">对方</th><th style="text-align:right;padding:4px 8px">我本地</th></tr>' +
           body +
         '</table>' +
-        '<p style="font-size:11px;color:var(--muted);margin-top:12px;line-height:1.7">合并＝两边都保留，同名分类合并、同一条目以对方为准；覆盖＝用对方的数据替换你本地的。执行前会自动存一份本地备份，可在设置里撤销。</p>' +
+        '<p style="font-size:11px;color:var(--muted);margin-top:12px;line-height:1.7">合并＝两边都保留，同名分类合并、同一条目以对方为准；覆盖＝用对方的数据替换你本地的。<b>两种都只作用于打勾的项目</b>。执行前会自动存一份本地备份，可在设置里撤销。</p>' +
       '</div>' +
       '<div style="padding:0 24px 20px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">' +
         '<button class="toggle-btn" onclick="closeSyncPreview()">取消</button>' +
-        '<button class="toggle-btn" onclick="applySyncFromPreview(\'merge\')">合并</button>' +
-        '<button class="toggle-btn" style="background:#c62828;color:#fff;border:none" onclick="applySyncFromPreview(\'overwrite\')">完全覆盖</button>' +
+        '<button class="toggle-btn" onclick="applySyncFromPreview(\'merge\')">合并勾选项</button>' +
+        '<button class="toggle-btn" style="background:#c62828;color:#fff;border:none" onclick="applySyncFromPreview(\'overwrite\')">覆盖勾选项</button>' +
       '</div>' +
     '</div>';
   document.body.appendChild(ov);
+}
+
+// 接收方逐项选择：全选开关 / 全选框三态 / 读出勾了哪些 key
+function syncRecvToggleAll(el) {
+  const box = document.getElementById('syncPreviewOverlay');
+  if (!box) return;
+  const list = box.querySelectorAll('.sync-recv-chk');
+  for (let i = 0; i < list.length; i++) list[i].checked = !!el.checked;
+  syncRecvAllState();
+}
+function syncRecvAllState() {
+  const box = document.getElementById('syncPreviewOverlay');
+  const all = document.getElementById('syncRecvAll');
+  if (!box || !all) return;
+  const list = box.querySelectorAll('.sync-recv-chk');
+  let n = 0;
+  for (let i = 0; i < list.length; i++) if (list[i].checked) n++;
+  all.checked = n === list.length;
+  all.indeterminate = n > 0 && n < list.length;
+}
+function syncRecvKeys() {
+  const box = document.getElementById('syncPreviewOverlay');
+  const out = [];
+  if (!box) return out;
+  const list = box.querySelectorAll('.sync-recv-chk');
+  for (let i = 0; i < list.length; i++) {
+    if (list[i].checked) {
+      const k = list[i].getAttribute('data-recv-key');
+      if (k) out.push(k);
+    }
+  }
+  return out;
 }
 
 function closeSyncPreview() {
@@ -9461,13 +9533,22 @@ function closeSyncPreview() {
 async function applySyncFromPreview(mode) {
   const payload = syncLastPayload;
   if (!payload) { closeSyncPreview(); return; }
-  if (mode === 'overwrite' && !(await uiConfirm('完全覆盖会用对方的资料替换你本地同类数据，确定继续？\n（已自动备份，可撤销）', { danger: true, okText: '覆盖' }))) return;
+  // v0.2.23：接收方自己挑，没勾的项目连碰都不碰
+  const keys = syncRecvKeys();
+  if (!keys.length) { showToast('至少要勾一项接收内容'); return; }
+  const src = (payload && payload.items) || {};
+  const items = {};
+  for (let i = 0; i < keys.length; i++) {
+    if (Object.prototype.hasOwnProperty.call(src, keys[i])) items[keys[i]] = src[keys[i]];
+  }
+  if (!Object.keys(items).length) { showToast('没有可接收的内容'); return; }
+  if (mode === 'overwrite' && !(await uiConfirm('完全覆盖会用对方的资料替换你本地勾选的项目，没勾的原样不动。确定继续？\n（已自动备份，可撤销）', { danger: true, okText: '覆盖' }))) return;
   syncBackupNow();
-  applySyncPayload(payload, mode);
+  applySyncPayload({ app: 'unicode-chaxun', v: payload.v || 1, at: payload.at || Date.now(), items: items }, mode);
   closeSyncPreview();
   syncRefreshCounts();
   const n = (favorites && favorites.size) || 0;
-  showToast((mode === 'overwrite' ? '已覆盖同步，' : '已合并同步，') + '现有收藏 ' + n + ' 个');
+  showToast((mode === 'overwrite' ? '已覆盖 ' : '已合并 ') + keys.length + ' 项，现有收藏 ' + n + ' 个');
   // 只刷新当前正在看的视图，别把人家切到别的页面
   try {
     if (currentView === 'favorites') showFavorites();
@@ -9490,7 +9571,7 @@ function syncRefreshCounts() {
 function syncBackupNow() {
   const all = {};
   for (const it of SYNC_ITEMS) all[it.key] = true;
-  const snapshot = buildSyncPayload(all);
+  const snapshot = buildSyncPayload(all, true);
   try { lsSet('unicode_sync_backup', { at: Date.now(), items: snapshot.items }); } catch (e) {}
 }
 
@@ -9543,6 +9624,11 @@ function applySyncPayload(payload, mode) {
     const remote = items.searches.filter(x => typeof x === 'string');
     const merged = over ? remote.slice(0, 30) : Array.from(new Set([...remote, ...cur])).slice(0, 30);
     lsSet('recentSearches', merged);
+  }
+  if (items.eggs && Array.isArray(items.eggs)) {
+    // v0.2.23：合并＝并集，覆盖＝以对方图鉴为准；非法 id 由 eggSetFoundIds 挡掉
+    const cur = over ? [] : Array.from(eggFoundSet());
+    eggSetFoundIds(cur.concat(items.eggs));
   }
 }
 
@@ -11156,12 +11242,13 @@ function muSwatchesHtml() {
 // ============================================================
 const WHATS_NEW = {
   items: [
-    ['🥚', '彩蛋加到 52 个', '分 7 类：暗号 / 字符码位 / 键盘 / 手势 / 时间 / 游戏 / 开发者，还有一本会记进度的图鉴'],
-    ['🎨', '不再满屏下雨', '字符雨只留科乐美那一个经典款，其它换成滤镜、纸屑、知识卡、音效、小游戏'],
-    ['📦', '跨平台直接下载', '关于本工具 → 其他平台版本，网页 / APK / exe 精简与完整版都能直接点'],
-    ['🧩', '关于合并了', '「关于」和「关于本工具」合成一块，免责声明不再出现两遍']
+    ['🥚', '彩蛋进度也跟着走了', '图鉴里已发现哪些彩蛋，现在算个人数据：导出备份、跨设备同步、清空都会带上'],
+    ['✅', '收东西也能挑了', '同步预览每一项都有勾选框，接收方可以只收想要的那几项，没勾的本地原样不动'],
+    ['📦', '导入和清空对齐', '「个人数据管理」的导入预览会显示彩蛋条数，清空所有个人数据会连图鉴一起清'],
+    ['🛟', '撤销更完整', '同步前的备份现在连空项目也记，撤销能真正回到同步之前']
   ]
 };
+
 function checkWhatsNew() {
   let seen = null;
   try { seen = localStorage.getItem('unicode_seenver'); } catch (e) {}
@@ -11927,7 +12014,7 @@ function renderSettingsBody() {
 
     <div class="settings-section">
       <h3>${ic('sync')}同步个人数据</h3>
-      <p>先把下面要带走的内容勾上（打勾的才同步），再选一种搬法：<b>取件码</b>——内容在本机加密后上传，另一台设备 10 分钟内输入这 6 位数字即可领走；<b>导出 / 导入文件</b>——完全不联网，自己用微信、数据线或隔空投送传过去。无论哪种，领取时都会先给你看一份对照表，由你决定「合并」还是「完全覆盖」。</p>
+      <p>先把下面要带走的内容勾上（打勾的才同步），再选一种搬法：<b>取件码</b>——内容在本机加密后上传，另一台设备 10 分钟内输入这 6 位数字即可领走；<b>导出 / 导入文件</b>——完全不联网，自己用微信、数据线或隔空投送传过去。<b>领取的一方还能再挑一次</b>：预览表里每一项都有勾选框，不想收的取消勾选，本地原样不动，最后再决定「合并」还是「完全覆盖」。</p>
       <div class="sync-list">
         ${SYNC_ITEMS.map(function (it) {
           const n = syncCountOf(it, syncReadItem(it));
@@ -12067,7 +12154,14 @@ function renderSettingsBody() {
       <details style="margin-top:10px">
         <summary style="cursor:pointer;font-size:13px;font-weight:600;user-select:none">${ic('log')}更新日志</summary>
         <div class="app-changelog">
-          <h4>v0.2.22 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <h4>v0.2.23 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <ul>
+            <li><b>彩蛋图鉴进度正式算个人数据</b>：以前辛辛苦苦找齐的彩蛋，换台设备、导个备份就全没了。现在「已发现哪些彩蛋」跟收藏、字义一样，会一起写进导出的 JSON、一起走取件码 / 文件同步，自动备份也会带上</li>
+            <li><b>接收方也能挑要收什么</b>：同步预览表每一项前面多了勾选框，默认全收，可以只留收藏、把浏览记录或彩蛋进度之类的勾掉；<b>没勾的项目本地一个字节都不动</b>，「合并」「完全覆盖」都只作用于勾选项，还多了「接收全部」一键开关</li>
+            <li><b>导入 / 清空跟着对齐</b>：「个人数据管理」的导入预览会显示彩蛋条数，清空所有个人数据会把图鉴和小游戏记录一起清掉，不会再出现「清完还有残留」</li>
+            <li><b>顺手修「撤销上次同步」不彻底</b>：同步前的自动备份以前会跳过空项目，导致撤销时没法把同步后新增的项清回去；现在备份连空项也记，撤销能真正回到同步之前</li>
+          </ul>
+          <h4>v0.2.22</h4>
           <ul>
             <li><b>彩蛋扩到 52 个，还配了一本图鉴</b>：以前只有 7 个，其中 3 个都是满屏字符雨。现在按 <b>暗号 / 字符码位 / 键盘 / 手势 / 时间环境 / 游戏工具 / 开发者</b> 分成 7 类，效果有 20 种——视觉滤镜（歪一点、桶滚、镜像、CRT、灰度）、飘落物、单个大字飞过、知识卡、Web Audio 音效、找不同小游戏、字符名片、摩斯电码、控制台入口、隐藏页……<b>满屏字符雨只留科乐美秘技那一个</b>，留给怀旧</li>
             <li><b>贴着 Unicode 本身玩</b>：查 U+FEFF 会讲零宽空格，查 U+202E 界面会左右反转，查 U+200D 会拆给你看家庭 emoji 怎么拼，U+1D11E 会真响一段音阶，U+2603 下雪，U+1F4A9 飘一坨……查字顺便捡彩蛋</li>
@@ -12081,6 +12175,8 @@ function renderSettingsBody() {
             <li><b>顺手修掉 v0.2.12 没修干净的那处撞色</b>：「最新版随时可以手动下载」那条 Gitee 地址以前还是亮蓝色裸链接，和蓝色下载按钮挤在一起分不清主次；现在改成灰色下划线，主按钮一眼就看得见</li>
             <li>加了一个专门盯按钮文字颜色的回归测试，防止以后改样式时又被覆盖回去</li>
           </ul>
+          <a id="changelogOlderToggle" onclick="toggleChangelogOlder()" style="display:inline-block;margin-top:10px;font-size:12px;color:var(--accent);cursor:pointer;user-select:none">展开历史版本 ▾</a>
+          <div id="changelogOlder" style="display:none">
           <h4 style="margin-top:10px">v0.2.20</h4>
           <ul>
             <li><b>界面风格可以换了</b>：设置新增「界面风格」，「原版」和「Material You」随便挑——MU 走大圆角、色调化表面的路线（学 Android 12+ 的 Material You），选了 MU 还能从 5 个主题色里挑一个顺眼的</li>
@@ -12088,8 +12184,6 @@ function renderSettingsBody() {
             <li><b>更新日志收起来了</b>：「关于本工具」默认只显示当前版本，历史版本点「展开历史版本」才展开，不用再滚一大坨</li>
             <li><b>本次更新弹窗</b>：版本更新后第一次打开应用，会自动弹一页「本次更新了什么」——你正在看的这个就是</li>
           </ul>
-          <a id="changelogOlderToggle" onclick="toggleChangelogOlder()" style="display:inline-block;margin-top:10px;font-size:12px;color:var(--accent);cursor:pointer;user-select:none">展开历史版本 ▾</a>
-          <div id="changelogOlder" style="display:none">
           <h4 style="margin-top:10px">v0.2.19</h4>
           <ul>
             <li><b>修 APK 顶上的黑框</b>：安卓端之前直接套系统的深色主题，状态栏和窗口背景是 ROM 默认的黑色——应用顶部一条黑框，最近任务快照里尤其显眼。现在换成自定义浅色主题：状态栏/导航栏/启动画面背景全部与应用底色 <code>#f8f9fa</code> 一致，状态栏图标在 Android 6.0+ 自动转深色保证看得清（网页版与桌面版本来就没这个问题，仅 APK 变化）</li>
@@ -12332,7 +12426,7 @@ function renderSettingsBody() {
 
     <div class="settings-section">
       <h3>${ic('download')}个人数据管理</h3>
-      <p>个人数据包括：我的收藏、自定义字义、浏览记录、最近搜索。可导出为独立文件备份或分享。</p>
+      <p>个人数据包括：我的收藏、自定义字义、自定义字典、收藏分类、浏览记录、最近搜索，以及<b>彩蛋图鉴进度</b>。可导出为独立文件备份或分享，清空时会一并清掉。</p>
       <div class="settings-actions">
         <button class="file-upload-btn" onclick="exportUserData()">${ic('download')}下载</button>
         ${window.showSaveFilePicker ? '<button class="file-upload-btn" onclick="exportUserDataSaveAs()" style="background:#28a745">' + ic('folder') + '另存为</button>' : ''}
