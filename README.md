@@ -2,7 +2,7 @@
 
 一个功能丰富的 Unicode 字符查询与浏览工具，纯前端单页应用，无需后端服务，开箱即用。
 
-当前版本：**v0.2.20**（更新日志见 README 底部，或打开应用「设置 → 关于本工具」查看）
+当前版本：**v0.2.21**（更新日志见 README 底部，或打开应用「设置 → 关于本工具」查看）
 
 Gitee：[i-dont-want-to-pick-a-name/unicode-chaxun](https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun)
 
@@ -419,7 +419,17 @@ build.bat clean      清掉旧产物重新打
 
 ## 更新日志
 
-### v0.2.20（最新）
+### v0.2.21（最新）
+
+**修好「下载新版 APK」按钮变成空蓝块**
+
+- 这个 bug 从 <code>v0.1.9</code> 的更新日志里就写过「修掉文字被挤没」，之后又改过好几版都没好——一直误判成窄屏挤压。真凶是 <code>.settings-section a</code> 的颜色规则优先级（0,1,1）比 <code>.file-upload-btn</code>（0,1,0）高，把按钮文字和描边图标一起染成了和背景相同的主题蓝，蓝底蓝字，看着像按钮里什么都没有
+- 修法：加专门的 <code>.settings-section a.file-upload-btn</code> 覆盖规则（0,2,1），并在按钮上内联写死 <code>color:#fff</code> 做最高优先级兜底，任何主题下都盖不掉
+- 顺手修掉 v0.2.12 没修干净的那处撞色：「最新版随时手动下载」那条 Gitee 裸链接以前还是亮蓝色，和蓝色主按钮分不清主次；现在改成灰色下划线
+- 新增 <code>_test_btncolor.js</code> 回归测试：会计算 CSS 特异性，盯住按钮文字颜色，防止以后改样式又被覆盖回去
+- 本版只修显示问题，没有功能变化
+
+### v0.2.20
 
 **界面风格双选 + 更新弹窗 + 修长按**
 

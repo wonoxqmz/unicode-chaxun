@@ -1134,6 +1134,12 @@ body.dark .pagination .pg-jump input { background: #1e2742; }
   font-size: 12px; color: var(--muted); margin-bottom: 8px; line-height: 1.5;
 }
 .settings-section a { color: var(--accent); text-decoration: none; }
+/* v0.2.21：按钮型链接不能被上面那条规则染成主题蓝。
+   .settings-section a 的优先级 (0,1,1) 高于 .file-upload-btn (0,1,0)，
+   会把按钮文字和描边图标（stroke=currentColor）一起染成与背景相同的蓝，
+   结果整个按钮看着就是一个空蓝色块 —— 从 v0.1.9 起被误判成「窄屏挤压」，反复没修好。*/
+.settings-section a.file-upload-btn,
+.settings-section a.file-upload-btn:hover { color: #fff; }
 .settings-section a:hover { text-decoration: underline; }
 .app-changelog {
   margin-top: 8px; padding: 10px 14px;
@@ -3648,7 +3654,7 @@ function wordDictOnLoaded() {
 
 
 // ===== 应用版本 =====
-const APP_VERSION = '0.2.20';
+const APP_VERSION = '0.2.21';
 const APP_UNICODE_VERSION = '17.0';   // 内置区块数据版本
 
 // 更新检查用的版本清单（静态 JSON，由 Cloudflare Pages 托管，仓库根目录 version.json）
@@ -10303,7 +10309,7 @@ function renderQuickDl() {
   box.style.display = 'flex';
   // v0.2.12：发布页链接补上描边按钮样式——之前裸用 .toggle-btn 没有任何按钮外观，
   // 呈现浏览器默认蓝链接，紧挨着蓝色的下载按钮，两个蓝色撞在一起分不清主次
-  box.innerHTML = '<a class="file-upload-btn" href="' + escapeHtml(dl) + '" target="_blank" rel="noopener" style="text-decoration:none;flex:0 0 auto;white-space:nowrap">' + ic('download') + downloadLabel(appPlatform()).replace(/^⬇️\s*/, '') + '</a>'
+  box.innerHTML = '<a class="file-upload-btn" href="' + escapeHtml(dl) + '" target="_blank" rel="noopener" style="text-decoration:none;flex:0 0 auto;white-space:nowrap;color:#fff">' + ic('download') + downloadLabel(appPlatform()).replace(/^⬇️\s*/, '') + '</a>'
     + '<a class="toggle-btn" href="' + escapeHtml(rel) + '" target="_blank" rel="noopener" style="text-decoration:none;flex:0 0 auto;white-space:nowrap;padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px">' + ic('link') + 'Gitee 发布页</a>';
 }
 
@@ -10632,10 +10638,10 @@ function muSwatchesHtml() {
 // ============================================================
 const WHATS_NEW = {
   items: [
-    ['🎨', '界面风格可切换', '设置 → 界面风格：原版 / Material You，MU 下还能挑 5 个主题色'],
-    ['✋', '修好长按图标没反应', '手机上也能长按 1.2 秒打开彩蛋清单了'],
-    ['📜', '更新日志收起来了', '「关于本工具」默认只显示当前版本，历史点开才展开'],
-    ['🔔', '本次更新弹窗', '以后更新版本都会先告诉你更新了什么']
+    ['🔵', '下载按钮不再是空蓝块', '「下载新版 APK」的文字和图标以前被染成和背景一样的蓝色，其实一直在，只是看不见'],
+    ['🔗', '发布页链接不再抢眼', '手动下载那条 Gitee 地址改成灰色下划线，和蓝色主按钮分得清主次'],
+    ['✅', '加了回归测试', '专门盯住按钮文字颜色，防止以后又被别的样式盖掉'],
+    ['📋', '这版就修这一处', '没有改功能，纯修显示问题']
   ]
 };
 function checkWhatsNew() {
@@ -11539,7 +11545,7 @@ function renderSettingsBody() {
         <div id="updateQuickDl" style="display:none;gap:8px;flex-wrap:wrap;margin-top:10px"></div>
         <div style="margin-top:10px;padding-top:8px;border-top:1px dashed var(--border);font-size:11px;color:var(--muted);line-height:1.8;word-break:break-all">
           ${ic('link')}最新版随时可以手动下载（Gitee 发布页）：<br>
-          <a href="${RELEASE_LATEST_URL}" target="_blank" rel="noopener">gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases</a>
+          <a href="${RELEASE_LATEST_URL}" target="_blank" rel="noopener" style="color:var(--muted);text-decoration:underline;text-underline-offset:2px">gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases</a>
         </div>
         <button class="set-switch${updateCfg.auto ? ' on' : ''}" id="updateAutoSwitch" onclick="toggleAutoUpdate()" style="margin-top:10px">
           <span class="track"><span class="thumb"></span></span>
@@ -11552,7 +11558,13 @@ function renderSettingsBody() {
       <details style="margin-top:10px">
         <summary style="cursor:pointer;font-size:13px;font-weight:600;user-select:none">${ic('log')}更新日志</summary>
         <div class="app-changelog">
-          <h4>v0.2.20 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <h4>v0.2.21 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <ul>
+            <li><b>修好「下载新版 APK」按钮变成一个空蓝块</b>：这个 bug 从 <code>v0.1.9</code> 的更新日志里就写过「修掉文字被挤没」，之后又改过好几版都没好——因为一直误判成窄屏挤压。真凶是设置面板里 <code>.settings-section a</code> 的颜色规则优先级比按钮自身样式高，把按钮文字和图标一起染成了和背景相同的主题蓝，蓝底蓝字，看着就像里面什么都没有。现在给按钮加了专门的颜色覆盖，并在按钮上内联写死白字，任何主题下都盖不掉</li>
+            <li><b>顺手修掉 v0.2.12 没修干净的那处撞色</b>：「最新版随时可以手动下载」那条 Gitee 地址以前还是亮蓝色裸链接，和蓝色下载按钮挤在一起分不清主次；现在改成灰色下划线，主按钮一眼就看得见</li>
+            <li>加了一个专门盯按钮文字颜色的回归测试，防止以后改样式时又被覆盖回去</li>
+          </ul>
+          <h4 style="margin-top:10px">v0.2.20</h4>
           <ul>
             <li><b>界面风格可以换了</b>：设置新增「界面风格」，「原版」和「Material You」随便挑——MU 走大圆角、色调化表面的路线（学 Android 12+ 的 Material You），选了 MU 还能从 5 个主题色里挑一个顺眼的</li>
             <li><b>修好长按图标没反应</b>：v0.2.18 的「长按 1.2 秒看彩蛋清单」在手机上被系统长按图片手势搅局——现在改成触摸+鼠标双通道并拦掉长按菜单，手机上也能正常长按了</li>
