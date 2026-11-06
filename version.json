@@ -1,13 +1,13 @@
 {
-  "latest": "0.2.24",
+  "latest": "0.2.25",
   "date": "2026-11-07",
-  "notes": "Material You 按官方 M3 重做：种子色生成 6 组 13 档色调色板、按颜色角色分配 tone、表面五级高度、状态层、形状与动效分层；设置改成分组入口 + 弹出小卡片，下载数据与 API Key 的长说明收进折叠。",
+  "notes": "新增「替换字」找形近字功能（同形字母 / 汉字形近 / 全角半角 / 兼容字符，可复制可对比）；52 个彩蛋补齐全端替代暗号，网页 / 安卓 / Windows 都能集齐，图鉴内新增全剧透解锁方法；修设置小卡片后滑到底彩蛋触发不了；仓库新增《彩蛋完整解锁方法.md》。",
   "downloads": {
     "web": "https://unchaxun.pages.dev/",
-    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.24/unicode-chaxun-v0.2.24.apk",
-    "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.24/unicode-chaxun-v0.2.24.exe",
-    "apk_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.24/unicode-chaxun-v0.2.24-lite.apk",
-    "exe_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.24/unicode-chaxun-v0.2.24-lite.exe"
+    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.25/unicode-chaxun-v0.2.25.apk",
+    "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.25/unicode-chaxun-v0.2.25.exe",
+    "apk_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.25/unicode-chaxun-v0.2.25-lite.apk",
+    "exe_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.25/unicode-chaxun-v0.2.25-lite.exe"
   },
   "release": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"
 }

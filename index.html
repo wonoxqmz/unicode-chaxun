@@ -230,6 +230,21 @@ body {
 .tool-page .tp-btn.sec:hover { background: #ddd; }
 body.dark .tool-page .tp-btn.sec { background: #2d3a5c; color: #e0e0e0; }
 body.dark .tool-page .tp-btn.sec:hover { background: #3d4a6c; }
+/* 替换字 / 形近字（v0.2.25） */
+.lk-group { margin-top: 16px; }
+.lk-gh { font-size: 12px; font-weight: 700; color: var(--muted); margin: 0 0 8px; }
+.lk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+.lk-card { border: 1px solid var(--border); background: var(--card); border-radius: 10px; padding: 8px 6px; text-align: center; cursor: pointer; }
+.lk-card:hover { border-color: var(--accent); }
+.lk-ch { font-size: 38px; line-height: 1.25; height: 52px; overflow: hidden; }
+.lk-cp { font-size: 11px; color: var(--accent); font-weight: 600; }
+.lk-nm { font-size: 10px; color: var(--muted); line-height: 1.35; word-break: break-word; height: 28px; overflow: hidden; }
+.lk-ops { display: flex; gap: 4px; justify-content: center; margin-top: 5px; }
+.lk-ops button { font-size: 10px; padding: 2px 6px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); cursor: pointer; }
+.lk-empty { font-size: 13px; color: var(--muted); line-height: 2; padding: 14px 0; }
+.lk-empty button { padding: 3px 10px; margin-right: 6px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); font-size: 13px; cursor: pointer; }
+.lk-note { font-size: 11px; color: var(--muted); line-height: 1.85; margin-top: 16px; padding-top: 10px; border-top: 1px solid var(--border-light); }
+body.mu .lk-card { border-radius: var(--m3-shape-md, 12px); background: var(--md-sys-color-surface-container-low, var(--card)); }
 
 /* 批量解析：正/反向模式切换器 */
 .batch-mode-switch { display:inline-flex; border:2px solid var(--border); border-radius:8px; overflow:hidden; margin-bottom:12px; }
@@ -2070,6 +2085,7 @@ body.dark .ai-err { color: #ef9a9a; }
   <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.8"/><path d="M3.4 12h17.2"/><path d="M12 3.2c2.4 2.5 3.6 5.6 3.6 8.8S14.4 18.3 12 20.8c-2.4-2.5-3.6-5.6-3.6-8.8S9.6 5.7 12 3.2z"/></symbol>
   <symbol id="i-package" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 8.2v7.6a2 2 0 0 1-1 1.74l-6.5 3.6a2 2 0 0 1-2 0l-6.5-3.6a2 2 0 0 1-1-1.74V8.2a2 2 0 0 1 1-1.74l6.5-3.6a2 2 0 0 1 2 0l6.5 3.6a2 2 0 0 1 1 1.74z"/><path d="m3.8 7.2 8.2 4.5 8.2-4.5"/><path d="M12 20.6v-9"/></symbol>
   <symbol id="i-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="5" width="18.4" height="14" rx="2.4"/><path d="m3.4 6.5 8.6 6.2 8.6-6.2"/></symbol>
+  <symbol id="i-swap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h14l3 3-3 3"/><path d="M20 16H6l-3-3 3-3"/><path d="M18 5l3 3-3 3M6 13l-3 3 3 3"/></symbol>
 </svg>
 
 <!-- 左侧边栏 -->
@@ -2079,6 +2095,7 @@ body.dark .ai-err { color: #ef9a9a; }
   <button class="nav-btn" data-view="search" onclick="showSearch()"><svg class="ni"><use href="#i-search" xlink:href="#i-search"/></svg><span>搜索</span></button>
   <button class="nav-btn" data-view="ai" onclick="showAIPage()"><svg class="ni"><use href="#i-bot" xlink:href="#i-bot"/></svg><span>AI 助手</span></button>
   <button class="nav-btn" data-view="compare" onclick="showCompare()"><svg class="ni"><use href="#i-compare" xlink:href="#i-compare"/></svg><span>字符对比</span></button>
+  <button class="nav-btn" data-view="lookalike" onclick="showLookalike()"><svg class="ni"><use href="#i-swap" xlink:href="#i-swap"/></svg><span>替换字</span></button>
   <button class="nav-btn" data-view="batch" onclick="showBatch()"><svg class="ni"><use href="#i-batch" xlink:href="#i-batch"/></svg><span>批量解析</span></button>
   <div class="sep"></div>
   <button class="nav-btn" data-view="all" onclick="showAllChars()"><svg class="ni"><use href="#i-grid" xlink:href="#i-grid"/></svg><span>全部字符</span></button>
@@ -2166,6 +2183,7 @@ body.dark .ai-err { color: #ef9a9a; }
         <span id="fcSizeVal" style="min-width:42px">96px</span>
         <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="fcShowAbsent" onchange="fcToggleAbsent(this.checked)">显示未安装的字体</label>
         <button class="toggle-btn" style="padding:4px 10px" onclick="fcCopyChar()">复制字符</button>
+        <button class="toggle-btn" style="padding:4px 10px" onclick="lkFromFontCompare()">替换字</button>
       </div>
       <div class="font-grid" id="fcGrid"></div>
       <p class="fc-hint">灰卡「缺字形」= 字体装了但没有这个字符的字形（浏览器会拿别的字体顶包）；「未安装」= 系统里没有这款字体。想看更多字库：设置 → 内置字库包装 Jigmo / BabelStone Han，或在「外置字体」里安装自己的 TTF/WOFF。点任意卡片复制该字符。</p>
@@ -2530,7 +2548,7 @@ const EGGS = [
   { id:'ui-shake', cat:'手势', fx:'随机', name:'摇一摇', trig:'手机上摇两下设备', secret:'手机拿起来晃一晃', run:function(){ var c = EGG_CHARS[Math.floor(Math.random() * EGG_CHARS.length)]; eggBigChar(c, '📱 摇出来了：' + c + ' U+' + c.codePointAt(0).toString(16).toUpperCase()); } },
   { id:'ui-dblclick', cat:'手势', fx:'动画', name:'双击有惊喜', trig:'双击设置页图标', secret:'不是单击，也不是长按', run:function(){ var el = document.getElementById('settingsAppIcon'); if (el) { el.classList.add('egg-badge-pulse'); setTimeout(function(){ el.classList.remove('egg-badge-pulse'); }, 1300); } eggFx('egg-shake', 1200, ''); showToast('✌️ 双击和单击不是一回事'); } },
   { id:'ui-theme5', cat:'手势', fx:'文案', name:'选择困难', trig:'连切 5 次深色 / 浅色模式', secret:'那个太阳月亮开关，来回拨五次', run:function(){ showToast('🌗 第五次了……你到底喜欢亮的还是暗的'); } },
-  { id:'ui-scroll', cat:'手势', fx:'文案', name:'真到底了', trig:'设置页滑到最底 3 次', secret:'设置往下拉到底，再来两回', run:function(){ showToast('📜 到底了，后面真没了——写这个的人留'); } },
+  { id:'ui-scroll', cat:'手势', fx:'文案', name:'真到底了', trig:'设置主页或任意小卡片里滑到最底 3 次', secret:'设置往下拉到底，再来两回（或搜「到底了」）', run:function(){ showToast('📜 到底了，后面真没了——写这个的人留'); } },
 
   // E 时间 / 环境 7
   { id:'tm-night', cat:'时间', fx:'文案', name:'夜猫子', trig:'凌晨 0–5 点打开', secret:'换个时间点来', run:function(){ showToast('🌙 都这个点了还在查码位，去睡吧'); } },
@@ -2564,6 +2582,22 @@ const EGG_KW = {
   'hello world':'kw-hello', 'view-source':'dev-viewsource',
   'unicode':'key-unicode', 'xyzzy':'key-xyzzy', 'idkfa':'key-xyzzy'
 };
+// v0.2.25：APK / EXE 没地址栏也没控制台、电脑没陀螺仪、手机没物理键盘、
+// 节日要等日子 —— 这些彩蛋在部分设备上永远解不开，图鉴就集不齐。
+// 给每个「平台受限」的彩蛋补一条全端通用的替代暗号：在搜索框输入即可触发。
+// 原触发方式全部保留，暗号只写在图鉴攻略里，不破坏自己找彩蛋的乐趣。
+const EGG_ALT = {
+  'dev-console':'egghelp',        'dev-hash':'80s',           'dev-about':'about:unicode',
+  'ui-shake':'摇一摇',            'env-landscape':'横屏',      'env-offline':'离线',
+  'key-konami':'konami',          'key-unicode':'typeunicode','key-xyzzy':'plugh',
+  'key-question':'快捷键',         'key-esc5':'连按esc',
+  'tm-night':'夜猫子',             'tm-april':'愚人节',        'tm-festival':'过节',
+  'tm-friday':'周五',             'tm-leap':'闰日',           'ui-scroll':'到底了'
+};
+// 反查表：暗号 -> id。键必须与 eggKw() 的归一化（trim + toLowerCase + 空格合并）一致
+const EGG_KW_ALT = {};
+for (var _ea in EGG_ALT) EGG_KW_ALT[EGG_ALT[_ea]] = _ea;
+
 const EGG_CP = {
   0xFEFF:'cp-feff', 0x200B:'cp-feff', 0x202E:'cp-202e', 0xFFFD:'cp-fffd',
   0x1F4A9:'cp-1f4a9', 0x10FFFF:'cp-10ffff', 0x0000:'cp-0', 0x2603:'cp-2603',
@@ -2572,6 +2606,9 @@ const EGG_CP = {
 };
 function eggKw(q) {
   var key = String(q || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  // v0.2.25：全端替代暗号优先，且一律 soft（彩蛋照放，不拦搜索）
+  var altId = EGG_KW_ALT[key];
+  if (altId) { eggFire(altId); return false; }
   var id = EGG_KW[key];
   if (!id) return false;
   // 这俩属于「打字顺手敲出来」的，只走全局键盘缓冲，别在搜索框里抢正常查询
@@ -2613,6 +2650,7 @@ function eggListOpen() {
         + '<span class="egg-tag">' + (open ? e.fx : '未发现') + '</span>'
         + '<div style="font-size:11px;color:var(--muted);margin:2px 0 0 34px">'
         + (open ? '触发：' + e.trig : '线索：' + e.secret)
+        + (open && EGG_ALT[e.id] ? '　·　替代暗号 <b>' + EGG_ALT[e.id] + '</b>' : '')
         + (open ? '　<a href="javascript:void(0)" onclick="eggFire(\'' + e.id + '\')" style="color:var(--accent)">再玩一次</a>' : '')
         + '</div></div>';
     }
@@ -2628,6 +2666,7 @@ function eggListOpen() {
       }).join('')
     + '</div>';
   html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">'
+    + '<button class="file-upload-btn" onclick="eggGuideOpen()">📖 完整解锁方法（全剧透）</button>'
     + '<button class="file-upload-btn" onclick="eggRandomTry()">🎲 随机试一个</button>'
     + '<button class="toggle-btn" onclick="eggResetFound()" style="padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);font-size:12px">清空发现记录</button>'
     + '</div>';
@@ -2637,7 +2676,7 @@ function eggListOpen() {
 function eggRandomTry() {
   var found = eggFoundSet(), pool = [];
   for (var i = 0; i < EGGS.length; i++) {
-    if (!found.has(EGGS[i].id) && EGGS[i].cat !== '开发者') pool.push(EGGS[i].id);
+    if (!found.has(EGGS[i].id)) pool.push(EGGS[i].id);
   }
   if (!pool.length) { showToast('🏆 全找到了，你是真的闲'); return; }
   closeModal();
@@ -2648,6 +2687,47 @@ function eggResetFound() {
   try { localStorage.removeItem(EGG_FOUND_STORE); } catch (e) {}
   showToast('🧹 发现记录清空了，重新找吧');
   setTimeout(eggListOpen, 500);
+}
+
+// v0.2.25：全剧透版解锁方法。图鉴对没找到的只给谜面，这里是给想集齐的人看的答案。
+// 内容直接从 EGGS 生成，以后加减彩蛋不用另外维护一份清单。
+function eggGuideOpen() {
+  var found = eggFoundSet(), n = 0, i, j, e;
+  for (i = 0; i < EGGS.length; i++) if (found.has(EGGS[i].id)) n++;
+  var html = '<p style="font-size:12px;color:var(--muted);margin:0 0 10px;line-height:1.9">'
+    + '一共 <b>' + EGGS.length + '</b> 个，按下面逐条做就能全解。<br>'
+    + '<b>带「全端替代」的</b>：这台设备做不了原本的动作（APK / EXE 没地址栏和控制台、'
+    + '电脑没陀螺仪、手机没物理键盘、节日要等日子），改成在<b>搜索框输入那个暗号</b>就行，'
+    + '网页 / 安卓 / Windows 三端都能集齐。<br>'
+    + '懒得输暗号也行，每条右边都有「直接玩一次」，点一下同样算发现。</p>'
+    + '<div class="egg-progress"><i style="width:' + Math.round(n * 100 / EGGS.length) + '%"></i></div>'
+    + '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">已发现 <b style="color:var(--accent)">' + n + '</b> / ' + EGGS.length
+    + '　·　仓库里还有一份同款 <b>彩蛋完整解锁方法.md</b>，离线也能照着做</div>';
+  for (var c = 0; c < EGG_CATS.length; c++) {
+    var cat = EGG_CATS[c];
+    html += '<div style="margin-top:13px;font-size:12px;font-weight:700;color:var(--muted)">' + cat + '</div>';
+    for (j = 0; j < EGGS.length; j++) {
+      e = EGGS[j];
+      if (e.cat !== cat) continue;
+      var num = ('0' + (j + 1)).slice(-2);
+      var done = found.has(e.id);
+      html += '<div class="egg-row">'
+        + '<span class="n">' + (done ? '✓' : num) + '</span>'
+        + '<b>' + e.name + '</b><span class="egg-tag">' + e.fx + '</span>'
+        + '<div style="font-size:11px;color:var(--muted);margin:2px 0 0 34px">触发：' + e.trig
+        + '　·　线索：' + e.secret + '</div>'
+        + (EGG_ALT[e.id] ? '<div style="font-size:11px;color:var(--muted);margin:1px 0 0 34px">全端替代：搜索框输入 <b style="color:var(--accent)">' + EGG_ALT[e.id] + '</b></div>' : '')
+        + '<div style="margin:3px 0 0 34px"><a href="javascript:void(0)" onclick="eggFire(\'' + e.id + '\')" style="color:var(--accent);font-size:11px">▶ 直接玩一次</a>'
+        + '　<a href="javascript:void(0)" onclick="eggListOpen()" style="color:var(--accent);font-size:11px">看进度</a></div>'
+        + '</div>';
+    }
+  }
+  html += '<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">'
+    + '<button class="file-upload-btn" onclick="eggListOpen()">← 返回图鉴</button>'
+    + '<button class="toggle-btn" onclick="eggResetFound()" style="padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);font-size:12px">清空发现记录</button>'
+    + '</div>';
+  showModal(ic('book') + '彩蛋完整解锁方法', html, '');
+  addLog('彩蛋', '打开完整解锁方法（' + n + '/' + EGGS.length + '）');
 }
 
 // ---------- 全局钩子 ----------
@@ -2683,7 +2763,12 @@ window.addEventListener('devicemotion', function (e) {
 }, { passive: true });
 document.addEventListener('scroll', function (e) {
   var t = e.target;
-  if (!t || t.id !== 'settingsBody') return;
+  if (!t) return;
+  // v0.2.25：设置改成分组入口 + 小卡片后，长内容在 .scard-body 里滚，
+  // 只盯 #settingsBody 会让「滑到底」这个彩蛋三个端都触发不了
+  var isSettings = (t.id === 'settingsBody') ||
+    (t.classList && t.classList.contains && t.classList.contains('scard-body'));
+  if (!isSettings) return;
   if (t.scrollTop + t.clientHeight >= t.scrollHeight - 12) {
     _eggScrollN++;
     if (_eggScrollN >= 3) { _eggScrollN = 0; eggFire('ui-scroll'); }
@@ -4478,7 +4563,7 @@ function wordDictOnLoaded() {
 
 
 // ===== 应用版本 =====
-const APP_VERSION = '0.2.24';
+const APP_VERSION = '0.2.25';
 const APP_UNICODE_VERSION = '17.0';   // 内置区块数据版本
 
 // 更新检查用的版本清单（静态 JSON，由 Cloudflare Pages 托管，仓库根目录 version.json）
@@ -6381,14 +6466,15 @@ function setCount(cnt) { document.getElementById('pageCount').textContent = cnt;
 //   3. 从按下到抬手 < 900ms，慢慢拖不算。
 // 切完把紧随其后的那次 click 吃掉，免得手指划完顺手点到下面的格子。
 // ============================================================
-const SWIPE_VIEWS = ['overview', 'search', 'ai', 'compare', 'batch', 'all', 'random', 'blocks', 'history', 'favorites'];
+const SWIPE_VIEWS = ['overview', 'search', 'ai', 'compare', 'lookalike', 'batch', 'all', 'random', 'blocks', 'history', 'favorites'];
 const SWIPE_FN = {
   overview: 'showOverview', search: 'showSearch', ai: 'showAIPage', compare: 'showCompare',
+  lookalike: 'showLookalike',
   batch: 'showBatch', all: 'showAllChars', random: 'showRandom', blocks: 'showBlocks',
   history: 'showHistory', favorites: 'showFavorites'
 };
 const SWIPE_LABEL = {
-  overview: '总览', search: '搜索', ai: 'AI 助手', compare: '字符对比', batch: '批量解析',
+  overview: '总览', search: '搜索', ai: 'AI 助手', compare: '字符对比', lookalike: '替换字', batch: '批量解析',
   all: '全部字符', random: '随机字符', blocks: '分类', history: '浏览记录', favorites: '我的收藏'
 };
 const SWIPE_STORE = 'unicode_swipe_nav';
@@ -8297,6 +8383,272 @@ function analyzeChar(ch) {
 }
 
 // ============================================================
+// 替换字（v0.2.25）：找形近字 / 同形字（confusables）
+// 肉眼几乎一样、码位却完全不同的字。Unicode 官方叫「易混淆字符」(UTS #39)，
+// 域名钓鱼、用户名冒充靠的就是它们。内建常见形近组，再补两条自动规则
+// （全角↔半角、兼容分解 NFKD），不联网、三端都能查。
+// 每组用字符串存，取字符一律 Array.from()，避免 BMP 外字符被拆成代理对。
+// ============================================================
+const LOOKALIKE_GROUPS = [
+  // 拉丁 / 希腊 / 西里尔：三套字母里分不出来的那批
+  { t:'拉丁 / 希腊 / 西里尔 · 大写', s:'AΑА' },
+  { t:'拉丁 / 希腊 / 西里尔 · 大写', s:'BΒВ' },
+  { t:'拉丁 / 希腊 / 西里尔 · 大写', s:'EΕЕ' },
+  { t:'拉丁 / 希腊 / 西里尔 · 大写', s:'KΚК' },
+  { t:'拉丁 / 希腊 / 西里尔 · 大写', s:'MΜМ' },
+  { t:'拉丁 / 希腊 / 西里尔 · 大写', s:'NΝН' },
+  { t:'拉丁 / 希腊 / 西里尔 · 大写', s:'OΟО' },
+  { t:'拉丁 / 希腊 / 西里尔 · 大写', s:'PΡР' },
+  { t:'拉丁 / 希腊 / 西里尔 · 大写', s:'TΤТ' },
+  { t:'拉丁 / 希腊 / 西里尔 · 大写', s:'XΧХ' },
+  { t:'拉丁 / 希腊 / 西里尔 · 大写', s:'IΙІӀ' },
+  { t:'拉丁 / 希腊 / 西里尔 · 大写', s:'HΗН' },
+  { t:'拉丁 / 希腊 / 西里尔 · 大写', s:'YΥУ' },
+  { t:'拉丁 / 希腊 / 西里尔 · 大写', s:'CϹС' },
+  { t:'拉丁 / 希腊 / 西里尔 · 大写', s:'ZΖ' },
+  { t:'拉丁 / 希腊 / 西里尔 · 大写', s:'JЈ' },
+  { t:'拉丁 / 希腊 / 西里尔 · 大写', s:'SЅ' },
+  { t:'拉丁 / 希腊 / 西里尔 · 小写', s:'aαа' },
+  { t:'拉丁 / 希腊 / 西里尔 · 小写', s:'eεе' },
+  { t:'拉丁 / 希腊 / 西里尔 · 小写', s:'oοо' },
+  { t:'拉丁 / 希腊 / 西里尔 · 小写', s:'pρр' },
+  { t:'拉丁 / 希腊 / 西里尔 · 小写', s:'cϲс' },
+  { t:'拉丁 / 希腊 / 西里尔 · 小写', s:'iιі' },
+  { t:'拉丁 / 希腊 / 西里尔 · 小写', s:'xх' },
+  { t:'拉丁 / 希腊 / 西里尔 · 小写', s:'yу' },
+  { t:'拉丁 / 希腊 / 西里尔 · 小写', s:'tτт' },
+  { t:'拉丁 / 希腊 / 西里尔 · 小写', s:'kκк' },
+  { t:'拉丁 / 希腊 / 西里尔 · 小写', s:'sѕ' },
+  { t:'拉丁 / 希腊 / 西里尔 · 小写', s:'hһ' },
+  { t:'拉丁 / 希腊 / 西里尔 · 小写', s:'vν' },
+  // 数字 / 字母 / 汉字
+  { t:'数字与字母', s:'0OΟОо〇０' },
+  { t:'数字与字母', s:'1lIӀ１' },
+  { t:'数字与字母', s:'5SЅ' },
+  // 标点 / 符号
+  { t:'连字符 / 减号', s:'-‐‑‒–—−﹣－' },
+  { t:'句点 / 间隔号', s:'.。．｡·•' },
+  { t:'逗号', s:',，‚､' },
+  { t:'冒号', s:':：꞉ː' },
+  { t:'分号', s:';；﹔' },
+  { t:'单引号', s:'\u0027＇’‘‛´' },
+  { t:'双引号', s:'"＂”“„' },
+  { t:'斜杠', s:'/／⁄∕' },
+  { t:'反斜杠', s:'\\＼∖' },
+  { t:'左括号', s:'(（' },
+  { t:'右括号', s:')）' },
+  { t:'波浪号', s:'~～⁓∽' },
+  { t:'等号', s:'=＝﹦' },
+  { t:'加号', s:'+＋﹢' },
+  { t:'星号', s:'*＊※' },
+  { t:'空白 / 看不见的字', s:' \u00A0\u2000\u2002\u3000\u200B\uFEFF' },
+  // 汉字形近字
+  { t:'汉字 · 形近字', s:'未末' },
+  { t:'汉字 · 形近字', s:'日曰' },
+  { t:'汉字 · 形近字', s:'己已巳' },
+  { t:'汉字 · 形近字', s:'土士' },
+  { t:'汉字 · 形近字', s:'人入八' },
+  { t:'汉字 · 形近字', s:'天夭夫' },
+  { t:'汉字 · 形近字', s:'大太犬' },
+  { t:'汉字 · 形近字', s:'田由甲申电' },
+  { t:'汉字 · 形近字', s:'干于千' },
+  { t:'汉字 · 形近字', s:'兔免' },
+  { t:'汉字 · 形近字', s:'戌戍戊戎' },
+  { t:'汉字 · 形近字', s:'辨辩辫瓣' },
+  { t:'汉字 · 形近字', s:'汨汩' },
+  { t:'汉字 · 形近字', s:'壶壸' },
+  { t:'汉字 · 形近字', s:'赢羸嬴' },
+  { t:'汉字 · 形近字', s:'祇祗衹袛' },
+  { t:'汉字 · 形近字', s:'微徵徽' },
+  { t:'汉字 · 形近字', s:'班斑' },
+  { t:'汉字 · 形近字', s:'亳毫' },
+  { t:'汉字 · 形近字', s:'囗口〇' },
+  { t:'汉字 · 形近字', s:'孑孓' },
+  { t:'汉字 · 形近字', s:'乒乓' },
+  { t:'汉字 · 形近字', s:'刀刃' },
+  { t:'汉字 · 形近字', s:'母毋' },
+  { t:'汉字 · 形近字', s:'乌鸟' },
+  { t:'汉字 · 形近字', s:'户戸戶' },
+  { t:'汉字 · 形近字', s:'儿几' },
+  { t:'汉字 · 形近字', s:'采釆' },
+  { t:'汉字 · 形近字', s:'崇祟' },
+  { t:'汉字 · 形近字', s:'荼茶' },
+  { t:'汉字 · 形近字', s:'准淮' },
+  { t:'汉字 · 形近字', s:'治冶' },
+  { t:'汉字 · 形近字', s:'盲肓' },
+  { t:'汉字 · 形近字', s:'拆折' },
+  { t:'汉字 · 形近字', s:'拨拔' },
+  { t:'汉字 · 形近字', s:'冫氵' },
+  { t:'汉字 · 形近字', s:'艹卄' },
+  { t:'汉字 · 形近字', s:'夂夊' },
+  { t:'汉字 · 形近字', s:'贝见' },
+  { t:'汉字 · 形近字', s:'矢失' },
+  { t:'汉字 · 形近字', s:'丐丏' },
+  { t:'汉字 · 形近字', s:'勺匀' },
+  // 兼容字符 / 单位符号 / 数学字母
+  { t:'兼容字符 / 单位符号', s:'Ω\u2126' },
+  { t:'兼容字符 / 单位符号', s:'ÅÅ' },
+  { t:'兼容字符 / 单位符号', s:'µμ' },
+  { t:'兼容字符 / 单位符号', s:'KK' },
+  { t:'兼容字符 / 单位符号', s:'lℓ' },
+  { t:'数学字母 / 带圈 / 全角 A', s:'A𝐀𝐴𝘈𝓐𝔄𝔸𝖠𝗔𝘼𝙰ＡⒶ🄰' },
+  { t:'带圈数字 1', s:'1①⑴１𝟙➀' }
+];
+function lkInvisible(cp) {
+  return cp === 0x20 || cp === 0xA0 || cp === 0x200B || cp === 0xFEFF ||
+    (cp >= 0x2000 && cp <= 0x200F) || cp === 0x3000 || cp === 0x2060;
+}
+function lkAutoCandidates(cp) {
+  var out = [];
+  // 全角 ASCII ↔ 半角 ASCII（U+FF01..FF5E 差 0xFEE0），U+3000 ↔ 普通空格
+  if (cp >= 0xFF01 && cp <= 0xFF5E) out.push({ cp: cp - 0xFEE0, t: '全角 / 半角' });
+  else if (cp >= 0x21 && cp <= 0x7E) out.push({ cp: cp + 0xFEE0, t: '全角 / 半角' });
+  if (cp === 0x3000) out.push({ cp: 0x20, t: '全角 / 半角' });
+  if (cp === 0x20) out.push({ cp: 0x3000, t: '全角 / 半角' });
+  // 兼容分解：① → 1、Ａ → A、ﬀ → ff、Å → Å …
+  try {
+    var src = String.fromCodePoint(cp);
+    if (src && typeof src.normalize === 'function') {
+      var d = src.normalize('NFKD');
+      if (d && d !== src) {
+        var arr = Array.from(d).slice(0, 8);
+        for (var i = 0; i < arr.length; i++) {
+          var c = arr[i].codePointAt(0);
+          if (c !== cp && c >= 0x20) out.push({ cp: c, t: '兼容分解' });
+        }
+      }
+    }
+  } catch (e) {}
+  return out;
+}
+function lkHex(cp) { var h = cp.toString(16).toUpperCase(); return h.length < 4 ? ('0000' + h).slice(-4) : h; }
+function lkCardHTML(cp) {
+  var info = null;
+  try { info = getCharInfo(cp); } catch (e) {}
+  var name = info ? info.name : '不在内置数据中';
+  var shown = lkInvisible(cp) ? '<span style="font-size:11px;color:var(--muted)">(看不见)</span>'
+    : escapeHtml(safeChr(cp) || '?');
+  return '<div class="lk-card" onclick="showDetail(' + cp + ')">'
+    + '<div class="lk-ch">' + shown + '</div>'
+    + '<div class="lk-cp">U+' + lkHex(cp) + '</div>'
+    + '<div class="lk-nm">' + escapeHtml(name) + '</div>'
+    + '<div class="lk-ops">'
+    + '<button onclick="event.stopPropagation();copyText(String.fromCodePoint(' + cp + '))">复制</button>'
+    + '<button onclick="event.stopPropagation();lkCompare(' + cp + ')">对比</button>'
+    + '</div></div>';
+}
+function showLookalike(preset) {
+  currentView = 'lookalike';
+  currentChars = [];
+  setActiveNav('lookalike');
+  clearControlBar();
+  setTitle('替换字 · 找形近字', 'swap');
+  setCount('');
+  document.getElementById('pagination').innerHTML = '';
+  var pre = '';
+  if (typeof preset === 'number') {
+    var inf = null;
+    try { inf = getCharInfo(preset); } catch (e) {}
+    pre = inf && !lkInvisible(preset) ? inf.char : '';
+  } else if (typeof preset === 'string') pre = preset;
+  document.getElementById('content').innerHTML =
+    '<div class="tool-page">'
+    + '<div class="tp-title">' + ic('swap') + '替换字 · 找形近字</div>'
+    + '<div class="tp-sub">输入一个字，列出肉眼几乎一样、码位却完全不同的字。它们能直接拿来「替换」原文 —— 看着没变，编码全变了。</div>'
+    + '<div class="tp-row">'
+    + '<input type="text" id="lkInput" placeholder="输入一个字，如 O / 日 / ① / A" maxlength="16" value="' + escapeHtml(pre) + '">'
+    + '<button class="tp-btn" onclick="doLookalike()">找形近字</button>'
+    + '<button class="tp-btn sec" onclick="document.getElementById(\'lkInput\').value=\'\';document.getElementById(\'lkResult\').innerHTML=\'\';">清空</button>'
+    + '</div><div id="lkResult"></div>'
+    + '<div class="lk-note">这些字在 Unicode 里叫「易混淆字符 confusables」（UTS #39）。把域名或用户名里一个字母换掉，肉眼看不出来，但已经是另一个字符串了 —— 所以浏览器对混合文字的域名会直接显示成 Punycode。<br>点卡片看详情，「复制」拿去替换，「对比」看两个码位差多少。内建常见形近组 + 全角/半角、兼容分解两条自动规则，不联网也能查。</div>'
+    + '</div>';
+  // v0.2.12 起一律不自动 focus，免得一进页面就弹键盘
+  var inp = document.getElementById('lkInput');
+  if (inp) inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') doLookalike(); });
+  if (pre) doLookalike();
+}
+function doLookalike() {
+  var out = document.getElementById('lkResult');
+  if (!out) return;
+  var raw = (document.getElementById('lkInput') || {}).value || '';
+  var chars = Array.from(raw);
+  if (!chars.length) { out.innerHTML = '<div class="lk-empty">先输入一个字，比如 O、日、①、A，或者一个空格。</div>'; return; }
+  var ch = chars[0], cp = ch.codePointAt(0);
+  var groups = [], seenAll = {}, i, j, e, arr, ccp, inGroup;
+  for (i = 0; i < LOOKALIKE_GROUPS.length; i++) {
+    e = LOOKALIKE_GROUPS[i];
+    arr = Array.from(e.s);
+    var hit = false;
+    for (j = 0; j < arr.length; j++) if (arr[j] === ch) { hit = true; break; }
+    if (!hit) continue;
+    var cps = []; inGroup = {};
+    for (j = 0; j < arr.length; j++) {
+      ccp = arr[j].codePointAt(0);
+      if (ccp === cp || inGroup[ccp] || seenAll[ccp]) continue;
+      inGroup[ccp] = 1; seenAll[ccp] = 1; cps.push(ccp);
+    }
+    if (cps.length) groups.push({ t: e.t, cps: cps });
+  }
+  var auto = lkAutoCandidates(cp), byTag = {}, order = [];
+  for (i = 0; i < auto.length; i++) {
+    var a = auto[i];
+    if (a.cp === cp || seenAll[a.cp]) continue;
+    seenAll[a.cp] = 1;
+    if (!byTag[a.t]) { byTag[a.t] = []; order.push(a.t); }
+    byTag[a.t].push(a.cp);
+  }
+  for (i = 0; i < order.length; i++) groups.push({ t: order[i], cps: byTag[order[i]] });
+  if (!groups.length) {
+    out.innerHTML = '<div class="lk-empty">没给 <b>' + escapeHtml(lkInvisible(cp) ? '(空白)' : ch)
+      + '</b>（U+' + lkHex(cp) + '）找到内置形近字。试试这几个：'
+      + '<button onclick="lkQuick(\'O\')">O</button>'
+      + '<button onclick="lkQuick(\'日\')">日</button>'
+      + '<button onclick="lkQuick(\'①\')">①</button>'
+      + '<button onclick="lkQuick(\'A\')">A</button>'
+      + '<button onclick="lkQuick(\' \')">空格</button></div>';
+    return;
+  }
+  var total = 0;
+  for (i = 0; i < groups.length; i++) total += groups[i].cps.length;
+  var html = '<div style="font-size:12px;color:var(--muted);margin-top:12px;line-height:1.9">查的是 <b style="font-size:19px;color:var(--text)">'
+    + escapeHtml(lkInvisible(cp) ? '(空白)' : ch) + '</b> U+' + lkHex(cp)
+    + '　·　找到 <b style="color:var(--accent)">' + total + '</b> 个形近字'
+    + (chars.length > 1 ? '（只查了第一个字）' : '') + '</div>';
+  for (i = 0; i < groups.length; i++) {
+    html += '<div class="lk-group"><div class="lk-gh">' + escapeHtml(groups[i].t)
+      + ' · ' + groups[i].cps.length + ' 个</div><div class="lk-grid">';
+    for (j = 0; j < groups[i].cps.length; j++) html += lkCardHTML(groups[i].cps[j]);
+    html += '</div></div>';
+  }
+  out.innerHTML = html;
+}
+function lkQuick(ch) {
+  var inp = document.getElementById('lkInput');
+  if (inp) { inp.value = ch; doLookalike(); }
+}
+function lkCompare(cp2) {
+  var raw = (document.getElementById('lkInput') || {}).value || '';
+  var arr = Array.from(raw);
+  if (!arr.length) return;
+  var cp1 = arr[0].codePointAt(0);
+  showCompare();
+  var a = document.getElementById('cmpA'), b = document.getElementById('cmpB');
+  if (a) a.value = String.fromCodePoint(cp1);
+  if (b) b.value = String.fromCodePoint(cp2);
+  doCompare();
+}
+function lkFromDetail(cp) {
+  try { closeModal(); } catch (e) {}
+  showLookalike(cp);
+}
+function lkFromFontCompare() {
+  var cp = fcCP;
+  try { closeFontCompare(); } catch (e) {}
+  try { closeModal(); } catch (e) {}
+  showLookalike(cp === null ? undefined : cp);
+}
+
+// ============================================================
 // 字符对比页面
 // ============================================================
 function showCompare() {
@@ -9105,6 +9457,7 @@ function showDetail(cp, silent) {
     <button onclick="copyText('${info.utf8}')">复制 UTF-8</button>
     <button onclick="showZoomPreview(${cp})">${ic('eye')}放大预览</button>
     <button onclick="showFontCompare(${cp})">${ic('font')}字体对比</button>
+    <button onclick="lkFromDetail(${cp})">${ic('swap')}找形近字</button>
     <button onclick="showGlyphFromWeb(${cp})">${ic('globe')}联网字形</button>
     <button class="secondary" onclick="toggleFavModal(${cp})">${ic('star')}${isFav?'已收藏':'收藏'}</button>
     <button class="secondary" onclick="openCategoryPicker(${cp}, safeChr(${cp}) || '?')">${ic('folder')}加入分类</button>
@@ -11756,10 +12109,10 @@ function muSwatchesHtml() {
 // ============================================================
 const WHATS_NEW = {
   items: [
-    ['🎨', 'Material You 重做了', '不再是换个圆角：现在从一个种子色生成整套颜色角色，深色模式自动换档，表面高度、状态反馈、形状层级都按 M3 来'],
-    ['🗂', '设置不糊一屏了', '主界面只剩 8 个分组入口，点开才弹一张小卡片；下载数据、API Key 那些长说明全收进折叠'],
-    ['🌈', '配色可以自己给', '除了 5 个预设，还能填一个十六进制颜色当种子，整套配色实时重算'],
-    ['📱', '手机上变底部卡片', '小屏按 M3 的 bottom sheet 贴底弹出，带拖动把手，单手够得着']
+    ['🔤', '新增「替换字」', '左边菜单多了一页：输入一个字，列出长得几乎一样、码位却完全不同的字 —— 拉丁/希腊/西里尔同形字母、汉字形近字、全角半角、兼容字符，能复制也能直接对比编码'],
+    ['🥚', '彩蛋三端都能集齐了', '控制台、改网址、摇一摇、键盘、要等节日这些原本在特定设备上做不了的，现在搜索框输个暗号就能触发；图鉴里还加了全剧透的解锁方法'],
+    ['📜', '「滑到底」彩蛋修好了', '上版改成小卡片后，设置页滑到底那个彩蛋三个端都触发不了；现在主页和卡片里都能滚，输「到底了」也能解'],
+    ['📖', '仓库多了一份完整攻略', '彩蛋完整解锁方法.md 把 52 个逐条写清触发方式和替代暗号，离线照着做也能集齐']
   ]
 };
 
@@ -12777,7 +13130,15 @@ function renderSettingsBody() {
       <details style="margin-top:10px">
         <summary style="cursor:pointer;font-size:13px;font-weight:600;user-select:none">${ic('log')}更新日志</summary>
         <div class="app-changelog">
-          <h4>v0.2.24 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <h4>v0.2.25 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <ul>
+            <li><b>新增「替换字」页</b>：菜单里多了一页，输入一个字就列出<b>肉眼几乎一样、码位完全不同</b>的字 —— 拉丁 / 希腊 / 西里尔同形字母（O / Ο / О）、汉字形近字（未末、己已巳、戌戍戊戎）、全角半角、兼容字符（Ω 与 Å）、连字符全家、看不见的空白字符。内建常见形近组，再加「全角↔半角」和「兼容分解 NFKD」两条自动规则，不联网也能查；每张卡能复制、能直接丢进字符对比看编码差多少。字符详情和字体对比弹层也加了快捷入口</li>
+            <li><b>彩蛋在三个端都能集齐了</b>：以前 <code>F12 敲 eggHelp()</code>、<code>网址加 ?mode=80s</code>、<code>#unicode</code> 只有浏览器做得到（APK / EXE 是 WebView，没地址栏也没控制台），摇一摇和横屏只有手机做得到，方向键秘技和 Esc 只有带键盘的做得到，节日类还得等日子 —— 图鉴永远差几个。现在每个这类彩蛋都补了一条<b>全端替代暗号</b>，在搜索框输入即可触发，原触发方式一个没删</li>
+            <li><b>图鉴里能看全剧透攻略</b>：图鉴顶部多了「📖 完整解锁方法（全剧透）」，52 个逐条列出触发方式、线索、替代暗号，每条还有「直接玩一次」按钮，任何设备都能一个不漏地解完；「随机试一个」也不再跳过开发者类</li>
+            <li><b>修「设置滑到底」彩蛋触发不了</b>：v0.2.24 把设置改成分组入口 + 小卡片后，主页变短、真正滚动的是卡片内容区，而钩子只盯着旧容器，三个端都解不开。现在主页和任意卡片里滚到底都算，另外给了暗号「到底了」兜底</li>
+            <li><b>仓库新增《彩蛋完整解锁方法.md》</b>：52 个彩蛋的完整表格版攻略（分类 / 触发 / 替代暗号 / 效果 / 线索），离线也能照着做</li>
+          </ul>
+          <h4>v0.2.24</h4>
           <ul>
             <li><b>Material You 从头重做</b>：以前只是把主题色换掉、把一堆控件塞成胶囊，这次按 Material 3 规范补齐了真正的骨架 —— 从种子色生成 6 组 13 档<b>色调色板</b>，按<b>颜色角色</b>（primary / on-primary / container / surface / outline…）分配给组件；浅色 primary 用 tone 40、深色换 tone 80，色相不变、对比度始终成立。表面高度改成 surface-container 五级加 primary 色调，不再靠浓阴影；形状按 xs/sm/md/lg/xl/full 分档而不是全场一个圆角；每个可点元素有 hover 8% / focus 10% / pressed 10% 的<b>状态层</b>；动效换 emphasized 缓动</li>
             <li><b>动态取色真的能取</b>：除了原来的 5 个预设，界面风格里可以直接填一个 <code>#RRGGBB</code> 当种子色，整套配色（按钮、卡片、边框、文字、深色模式）实时重新生成；旁边写了这套配色是怎么算出来的</li>

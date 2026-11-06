@@ -47,3 +47,11 @@ _deploy.log
 _live.html
 _vj.json
 _h.txt
+
+# 无头浏览器渲染验证临时文件（本地跑，不进仓库）
+_probe*.html
+_probe*.txt
+_shot*.html
+_shot*.png
+_shot*.txt
+_edgeprobe*/
