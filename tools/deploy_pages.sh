@@ -28,19 +28,24 @@ cp -r fonts unicode_data _deploy/
 APK="dist/Unicode编码查询-v${VER}.apk"
 APK_LITE="dist/Unicode编码查询-v${VER}-lite.apk"
 if [ -z "$SKIP_APK" ]; then
-  # 完整版超过 25MiB 时退而挂精简版（v0.2.18 起有 lite 包）
-  MIRROR="$APK"
-  [ -f "$MIRROR" ] || MIRROR="$APK_LITE"
-  if [ -f "$MIRROR" ]; then
-    MIRROR_SIZE=$(stat -c%s "$MIRROR")
-    if [ "$MIRROR_SIZE" -le $((25*1024*1024)) ]; then
-      case "$MIRROR" in
-        *-lite.apk) cp "$MIRROR" "_deploy/download/unicode-chaxun-v${VER}-lite.apk"; echo "==> 附带精简版 APK：unicode-chaxun-v${VER}-lite.apk" ;;
-        *)          cp "$MIRROR" "_deploy/download/unicode-chaxun-v${VER}.apk"; echo "==> 附带 APK：unicode-chaxun-v${VER}.apk" ;;
-      esac
-    else
-      echo "==> APK $(($MIRROR_SIZE/1024/1024))MiB 超过 Pages 25MiB 上限，跳过镜像（下载走 Gitee 直链）"
+  # 完整版超过 25MiB 时要继续试精简版（v0.2.18 起有 lite 包），别一超限就整个跳过
+  MIRROR=""
+  for CAND in "$APK" "$APK_LITE"; do
+    [ -f "$CAND" ] || continue
+    CAND_SIZE=$(stat -c%s "$CAND")
+    if [ "$CAND_SIZE" -le $((25*1024*1024)) ]; then
+      MIRROR="$CAND"
+      break
     fi
+    echo "==> $(basename "$CAND") $(($CAND_SIZE/1024/1024))MiB 超过 Pages 25MiB 上限，试下一个"
+  done
+  if [ -n "$MIRROR" ]; then
+    case "$MIRROR" in
+      *-lite.apk) cp "$MIRROR" "_deploy/download/unicode-chaxun-v${VER}-lite.apk"; echo "==> 附带精简版 APK：unicode-chaxun-v${VER}-lite.apk" ;;
+      *)          cp "$MIRROR" "_deploy/download/unicode-chaxun-v${VER}.apk"; echo "==> 附带 APK：unicode-chaxun-v${VER}.apk" ;;
+    esac
+  else
+    echo "==> 没有能挂的 APK 镜像（下载走 Gitee 直链）"
   fi
 fi
 

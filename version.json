@@ -1,13 +1,13 @@
 {
-  "latest": "0.2.21",
-  "date": "2026-11-06",
-  "notes": "修好「下载新版 APK」按钮变成一个空蓝块：设置面板的链接颜色规则把按钮文字和图标染成了与背景相同的蓝色（从 v0.1.9 起一直被误判成窄屏挤压）；手动下载的 Gitee 链接改成灰色下划线，不再和主按钮撞色。",
+  "latest": "0.2.22",
+  "date": "2026-11-07",
+  "notes": "彩蛋扩到 52 个（7 类 / 20 种效果），满屏字符雨只留科乐美一个；新增带发现进度的彩蛋图鉴；关于本工具里可直接下载其它平台版本；「关于」和「关于本工具」合并。",
   "downloads": {
     "web": "https://unchaxun.pages.dev/",
-    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.21/unicode-chaxun-v0.2.21.apk",
-    "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.21/unicode-chaxun-v0.2.21.exe",
-    "apk_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.21/unicode-chaxun-v0.2.21-lite.apk",
-    "exe_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.21/unicode-chaxun-v0.2.21-lite.exe"
+    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.22/unicode-chaxun-v0.2.22.apk",
+    "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.22/unicode-chaxun-v0.2.22.exe",
+    "apk_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.22/unicode-chaxun-v0.2.22-lite.apk",
+    "exe_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.22/unicode-chaxun-v0.2.22-lite.exe"
   },
   "release": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"
 }
