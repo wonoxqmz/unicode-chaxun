@@ -293,7 +293,7 @@ https://unchaxun.pages.dev/version.json
 | `GET /api/stats?action=reset&key=…[&date=YYYY-MM-DD]` | 清掉某天（默认今天）的打开数据 | 测试期抹噪音用，不可恢复 |
 
 - **关掉**：设置 → 关于本工具 → 「匿名使用统计」，关掉后 `statPing()` 直接 return，一次请求都不发（键位 `unicode_stats_off`）
-- **看数据**：`bash tools/stats.sh`（脚本从 `~/.workbuddy/uchx_stats_key` 读 key，key 不进仓库）；双击根目录 `看数据.bat` 也行
+- **看数据**：`bash tools/stats.sh`（脚本从 `~/.workbuddy/uchx_stats_key` 读 key，key 不进仓库）；双击根目录 `看数据.bat` 也行；**可视化面板**：双击根目录 `统计面板.html`（纯 SVG 图表：30 天趋势折线 / 版本分布 / 下载量 / 设备清单 / 每日明细，首次打开输入一次 key，存在浏览器 localStorage）
 - **排除自己的设备**：`bash tools/stats.sh devices` 认人 → `bash tools/stats.sh exclude <完整设备ID> <备注>` 加进名单（备注可省略，如 `exclude ad0ce329… Win电脑`）。之后每次打开仍会上报，但报表里会被扣掉（原始值看 `opensRaw` / `devicesRaw`）。要连上报都停掉，就直接在设置里关统计开关
 - 统计失败一律静默：断网、KV 挂了、函数报错都不影响应用正常使用和下载
 
