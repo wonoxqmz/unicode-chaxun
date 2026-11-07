@@ -21,13 +21,13 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DESKTOP = os.path.join(ROOT, "desktop")
 ONEDIR = "--onedir" in sys.argv
-LITE = "--lite" in sys.argv          # v0.2.18：精简版，不带字库包（约 26MB → 12MB 左右）
+LITE = "--lite" in sys.argv          # v0.2.18：精简版，不带字库包（完整版约 43MB → 约 16MB）
 DIST = os.path.join(ROOT, "dist_dir" if ONEDIR else "dist")
 BUILD = os.path.join(os.environ.get("TEMP", "/tmp"), "pybuild_uchx_dir" if ONEDIR else "pybuild_uchx")
 EXE_ASCII = "UnicodeChaxun.exe"
 EXE_FINAL = "Unicode编码查询.exe"
-# exe 超过 30MB 说明把没用的东西打进去了，值得看一眼
-SIZE_WARN_MB = 30
+# 完整版 exe（含 26MB 字库）约 43MB，精简版约 16MB；超过 55MB 才说明把没用的东西打进去了
+SIZE_WARN_MB = 55
 
 
 def run(cmd, **kw):

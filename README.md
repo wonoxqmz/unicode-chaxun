@@ -314,7 +314,7 @@ https://unchaxun.pages.dev/version.json
 不想每次开浏览器的话，可以打包成一个本地 exe：
 
 ```
-build.bat            打单文件 exe → dist\Unicode编码查询.exe（约 15 MB）
+build.bat            打单文件 exe → dist\Unicode编码查询.exe（完整版约 43 MB，精简版约 16 MB）
 build.bat apk        打安卓 APK  → android\UnicodeChaxun-v*.apk（约 2 MB）
 build.bat all        两个一起打
 build.bat clean      清掉旧产物重新打
@@ -577,13 +577,13 @@ build.bat clean      清掉旧产物重新打
 
 - 字形拉取结果（哪些码点 GlyphWiki 没收录）作为系统消息喂给模型：不再怪用户网络、不再让反复重试，直接下结论 + 一次引导看「联网字形」
 - 提示词收紧：「不确定」只说一次，确定的部分（码位/编码/区块）照常讲清
-### v0.2.10（最新）
+### v0.2.10
 
 **禁用双指缩放**
 
 - 手机上双指捏合能缩放整个页面，「一眼网页套壳」——网页层 viewport 锁死（maximum-scale=1 / user-scalable=no），安卓端 WebView 缩放开关双保险
 - 想看大字形用字符详情里的「放大预览」，不影响
-### v0.2.9（最新）
+### v0.2.9
 
 **代码搬到 Gitee**
 
