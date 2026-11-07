@@ -25,8 +25,8 @@ LCJ的Unicode编码数据.json
 # 本地测试脚本（下划线开头 = 内部用，不进仓库）
 _test_*.js
 
-# v0.2.5 扩展区字体包（几 MB 的二进制，不进 git；APK 打包本地现打，网页版由部署脚本单独上传）
-fonts/
+# v0.2.26：扩展区字体包（26MB）改为提交进仓库，供 Cloudflare 连 GitHub 自动构建时带上
+# （否则线上字体对比功能会缺字库）。android/assets/fonts/ 仍是 APK 本地打包副本，继续忽略。
 
 # 宣传视频工程（Remotion，node_modules 就 700MB+，源码和成片都在本地）
 promo-video/
