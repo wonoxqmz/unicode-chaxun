@@ -69,3 +69,7 @@ open-panel.html
 
 # 发版时改名成 ASCII 的上传暂存目录（四个安装包，几十 MB，不进仓库）
 _upload/
+
+# 看数据脚本跑出来的本地快照（含排除设备 ID 与备注，不公开）
+_ex.json
+_sum.json
