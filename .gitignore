@@ -63,3 +63,6 @@ browser-screenshots/
 
 # 推广文案包（只留本地）
 推广文案.md
+
+# 本地跳板页：内含统计 key，不进仓库
+open-panel.html
