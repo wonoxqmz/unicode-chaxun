@@ -43,7 +43,9 @@ MIN_API=21
 
 echo "==> 版本 $VER（index.html $HTML_BYTES 字节）"
 
-if [ ! -f assets/index.html ] || [ "$(wc -c < assets/index.html)" != "$HTML_BYTES" ]; then
+# 比内容而不是只比字节数：改文案、换等长版本号（0.2.26 -> 0.2.27）时字节数可能一模一样，
+# 只比 wc -c 会静默沿用旧页面——构建照绿、版本号照升，包里却是上一版的 HTML
+if [ ! -f assets/index.html ] || ! cmp -s "$INDEX" assets/index.html; then
   echo "==> 同步 index.html -> assets/"
   cp "$INDEX" assets/index.html
 fi

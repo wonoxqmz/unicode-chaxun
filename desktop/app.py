@@ -64,7 +64,9 @@ class Handler(BaseHTTPRequestHandler):
         name = "index.html" if self.path in ("", "/", "/index.html") else self.path.lstrip("/").split("?")[0]
         # 只放行打包进来的文件，别把磁盘上任意路径暴露出去
         target = os.path.normpath(os.path.join(self.root, name))
-        if not target.startswith(os.path.normpath(self.root)) or not os.path.isfile(target):
+        # 必须比到分隔符：`_MEI123` 是 `_MEI1234` 的前缀，只做 startswith 会放行同前缀的兄弟目录
+        root = os.path.normpath(self.root)
+        if not (target == root or target.startswith(root + os.sep)) or not os.path.isfile(target):
             self.send_error(404)
             return
         with open(target, "rb") as fh:
