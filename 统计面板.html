@@ -140,6 +140,12 @@
     </section>
 
     <section>
+      <h2>流量来源</h2>
+      <div id="refBox"></div>
+      <div class="note">给宣传视频/帖子用带标签的链接，比如 <code>https://unchaxun.pages.dev/?from=bilibili</code>，这里就会单独记一行。只存标签，不存完整网址、不存个人信息。APK / EXE 里没有页面来源，只统计网页版。</div>
+    </section>
+
+    <section>
       <h2>见过的设备</h2>
       <table id="tblDev">
         <thead><tr>
@@ -310,6 +316,19 @@ function renderVersionCharts(s) {
   }
 }
 
+// ---------- 流量来源 ----------
+function renderReferrers(s) {
+  const rows = Object.entries(s.referrers || {}).sort((a, b) => b[1].total - a[1].total);
+  const el = document.getElementById('refBox');
+  if (!rows.length) {
+    el.innerHTML = '<div class="note">还没有带来源标签的访问。等宣传视频发出去，用 <code>?from=xxx</code> 的链接进来的人会出现在这里。</div>';
+    return;
+  }
+  el.innerHTML = '<table><thead><tr><th>来源标签</th><th>今天打开</th><th>今天设备</th><th>累计打开</th></tr></thead><tbody>' +
+    rows.map(([tag, v]) => '<tr><td>' + esc(tag) + '</td><td>' + v.today + '</td><td>' + v.devicesToday + '</td><td><b>' + v.total + '</b></td></tr>').join('') +
+    '</tbody></table>';
+}
+
 // ---------- 设备表 ----------
 function renderDevices(dev) {
   const tb = document.querySelector('#tblDev tbody');
@@ -351,8 +370,9 @@ async function loadAll() {
       api({ action: 'devices' }).catch(() => ({ devices: [] })),
     ]);
     renderCards(summary);
-    renderTrend(summary.days);
+    renderTrend(summary.days.slice().reverse());   // 左=早、右=今天，符合看图习惯
     renderVersionCharts(summary);
+    renderReferrers(summary);
     renderDevices(dev);
     renderDays(summary);
     document.getElementById('foot').textContent = '更新于 ' + new Date().toLocaleString('zh-CN') + ' · 数据按 UTC+8 切日 · 排除名单 ' + (summary.excluded || []).length + ' 台设备';

@@ -20,6 +20,9 @@
 //   d:<YYYY-MM-DD>:<f>    当天各安装包下载次数（由 api/dl.js 写入）
 //   dw:<version>:<f>      各版本安装包累计下载次数
 //   cfg:exclude           排除名单 [{id, note, at}]（自己的设备，不计入报表）
+//   ref:<日期>:<标签>     宣传链接 ?from=标签 带来的当天打开次数（90 天过期）
+//   refdev:<日期>:<标签>:<hash>  该来源当天的独立设备（90 天过期）
+//   reftotal:<标签>       该来源累计打开次数
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -114,6 +117,24 @@ export async function onRequest(context) {
     const d = today();
     const id = await sha1(raw);
 
+    // 来源标签：只认页面 URL 里显式的 ?from=xxx（宣传视频/帖子用的专用链接）
+    // 只存标签本身，不存完整 URL、不存其它参数、不存 IP/UA
+    let refTag = '';
+    try {
+      const ref = request.headers.get('referer') || '';
+      if (ref) {
+        const u = new URL(ref);
+        if (u.hostname === 'unchaxun.pages.dev') {
+          refTag = (u.searchParams.get('from') || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 20);
+        }
+      }
+    } catch { /* 格式异常的 referer 直接忽略 */ }
+    if (refTag) {
+      await bump(env.SYNC, 'ref:' + d + ':' + refTag, 1, DAY_TTL);
+      await bump(env.SYNC, 'reftotal:' + refTag, 1);
+      await env.SYNC.put('refdev:' + d + ':' + refTag + ':' + id, '1', { expirationTtl: DAY_TTL });
+    }
+
     await bump(env.SYNC, 'p:' + d);
     await env.SYNC.put('u:' + d + ':' + id, '1', { expirationTtl: DAY_TTL });
     // 每台设备当天的打开次数：报表里要按设备剔除"我自己的机器"
@@ -180,6 +201,23 @@ export async function onRequest(context) {
     const todayStats = days[0];
     const weekOpens = days.slice(0, 7).reduce((s, x) => s + x.opens, 0);
 
+    // 来源：宣传链接 ?from=xxx 带来的打开次数与独立设备（只按标签聚合）
+    const referrers = {};
+    let refCursor;
+    for (let i = 0; i < 10; i++) {
+      const page = await env.SYNC.list({ prefix: 'reftotal:', limit: 1000, cursor: refCursor });
+      for (const k of page.keys) {
+        const tag = k.name.slice(9);
+        referrers[tag] = {
+          total: parseInt((await env.SYNC.get(k.name)) || '0', 10) || 0,
+          today: parseInt((await env.SYNC.get('ref:' + todayStats.date + ':' + tag)) || '0', 10) || 0,
+          devicesToday: await countPrefix(env.SYNC, 'refdev:' + todayStats.date + ':' + tag + ':'),
+        };
+      }
+      if (page.list_complete) break;
+      refCursor = page.cursor;
+    }
+
     const versions = {};
     for (const ver of ['0.2.26', '0.2.27', '0.2.28', '0.2.29', '0.2.30']) {
       const c = parseInt((await env.SYNC.get('v:' + ver)) || '0', 10) || 0;
@@ -211,6 +249,7 @@ export async function onRequest(context) {
       versions,
       downloadsToday: dlToday,
       downloadsByVersion: dlVersion,
+      referrers,
       excluded: exList,
       days,
     });
