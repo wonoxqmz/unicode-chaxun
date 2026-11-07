@@ -9543,7 +9543,7 @@ function showDetail(cp, silent) {
   document.getElementById('modalFooter').innerHTML = `
     <button onclick="copyText(String.fromCodePoint(${cp}))">复制字符</button>
     <button onclick="copyText('U+${info.codepoint.toString(16).toUpperCase().padStart(4,'0')}')">复制编码</button>
-    <button onclick="copyText('${info.html.replace(/'/g,"\\'")}')">复制 HTML</button>
+    <button onclick="copyText('${info.html.replace(/&/g, '&amp;').replace(/'/g,"\\'")}')">复制 HTML</button>
     <button onclick="copyText('${info.utf8}')">复制 UTF-8</button>
     <button onclick="showZoomPreview(${cp})">${ic('eye')}放大预览</button>
     <button onclick="showFontCompare(${cp})">${ic('font')}字体对比</button>

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unicode 编码查询 · 使用统计面板</title>
+<style>
+  :root {
+    --primary: #6750A3;
+    --primary-c: #EADDFF;
+    --on-primary-c: #21005D;
+    --surface: #FEF7FF;
+    --surface-2: #F3EDF7;
+    --surface-3: #E8E0F0;
+    --on-surface: #1D1B20;
+    --on-surface-var: #49454F;
+    --outline: #CAC4D0;
+    --ok: #386A20;
+    --ok-c: #C4EED0;
+    --warn: #7A5900;
+    --warn-c: #FFDF99;
+    --err: #B3261E;
+    --err-c: #F9DEDC;
+    --r-lg: 20px;
+    --r-md: 14px;
+    --gap: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+    background: var(--surface);
+    color: var(--on-surface);
+    padding: 22px;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; }
+  h1 { font-size: 21px; font-weight: 600; margin-bottom: 2px; }
+  .sub { color: var(--on-surface-var); font-size: 12.5px; margin-bottom: 18px; }
+  .row { display: flex; flex-wrap: wrap; gap: var(--gap); }
+  .card {
+    background: var(--surface-2);
+    border-radius: var(--r-lg);
+    padding: 16px 18px;
+    flex: 1 1 220px;
+  }
+  .card .num { font-size: 30px; font-weight: 700; letter-spacing: -0.5px; }
+  .card .lab { color: var(--on-surface-var); font-size: 12.5px; margin-top: 2px; }
+  .card .hint { font-size: 11.5px; color: var(--on-surface-var); margin-top: 6px; }
+  section {
+    background: var(--surface-2);
+    border-radius: var(--r-lg);
+    padding: 16px 18px;
+    margin-top: var(--gap);
+  }
+  section h2 { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    text-align: left; color: var(--on-surface-var); font-weight: 500;
+    padding: 6px 10px; border-bottom: 1px solid var(--outline); white-space: nowrap;
+  }
+  td { padding: 6px 10px; border-bottom: 1px solid var(--surface-3); white-space: nowrap; }
+  td.wrap, th.wrap { white-space: normal; }
+  tr:last-child td { border-bottom: none; }
+  .tag {
+    display: inline-block; padding: 2px 10px; border-radius: 8px;
+    font-size: 11.5px; font-weight: 500;
+  }
+  .tag.ok  { background: var(--ok-c); color: var(--ok); }
+  .tag.dim { background: var(--surface-3); color: var(--on-surface-var); }
+  .tag.err { background: var(--err-c); color: var(--err); }
+  .btn {
+    background: var(--primary); color: #fff; border: none; cursor: pointer;
+    padding: 9px 20px; border-radius: 999px; font-size: 13.5px; font-weight: 500;
+    font-family: inherit;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .keybar {
+    display: flex; gap: 10px; align-items: center; margin-bottom: 4px;
+  }
+  .keybar input {
+    flex: 1; padding: 9px 14px; border-radius: var(--r-md);
+    border: 1px solid var(--outline); font-size: 13.5px; font-family: inherit;
+    background: var(--surface); color: var(--on-surface);
+  }
+  .errbox {
+    background: var(--err-c); color: var(--err); border-radius: var(--r-md);
+    padding: 12px 16px; margin-top: 12px; font-size: 13px; display: none;
+  }
+  .loading { color: var(--on-surface-var); padding: 40px 0; text-align: center; font-size: 14px; }
+  .note { font-size: 12px; color: var(--on-surface-var); margin-top: 10px; }
+  svg text { font-family: inherit; }
+  #chartTrend { width: 100%; height: auto; display: block; }
+  .legend { display: flex; gap: 18px; font-size: 12px; color: var(--on-surface-var); margin-top: 8px; }
+  .legend i {
+    display: inline-block; width: 10px; height: 10px; border-radius: 3px;
+    margin-right: 6px; vertical-align: -1px;
+  }
+  footer { color: var(--on-surface-var); font-size: 11.5px; margin-top: 18px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>使用统计面板</h1>
+  <div class="sub">数据来自 unchaxun.pages.dev 的匿名统计接口 · 已自动排除你自己的设备</div>
+
+  <div id="gate" style="display:none">
+    <section>
+      <h2>输入查看密钥</h2>
+      <div class="keybar">
+        <input id="keyInput" type="password" placeholder="STATS_KEY（存在本机浏览器里，不会上传到任何地方）">
+        <button class="btn" onclick="saveKey()">打开面板</button>
+      </div>
+      <div class="note">密钥就是统计汇总接口的 key（之前存过一份在 <code>~/.workbuddy/uchx_stats_key</code>）。换台电脑打开这个文件，重新输入一次就行。</div>
+      <div class="errbox" id="gateErr"></div>
+    </section>
+  </div>
+
+  <div id="main" style="display:none">
+    <div id="cards" class="row"></div>
+
+    <section>
+      <h2>打开次数与活跃设备 · 近 30 天</h2>
+      <svg id="chartTrend" viewBox="0 0 1000 300"></svg>
+      <div class="legend">
+        <span><i style="background:#6750A3"></i>打开次数（已排除自己的设备）</span>
+        <span><i style="background:#386A20"></i>活跃设备数</span>
+      </div>
+    </section>
+
+    <section>
+      <h2>版本分布（打开次数）</h2>
+      <div id="chartVer"></div>
+    </section>
+
+    <section>
+      <h2>安装包下载量（按版本累计）</h2>
+      <div id="chartDl"></div>
+      <div class="note">由 api/dl.js 记录：应用内点「下载安装包」会计数；从 0.2.30 开始统计。</div>
+    </section>
+
+    <section>
+      <h2>见过的设备</h2>
+      <table id="tblDev">
+        <thead><tr>
+          <th>设备ID</th><th>平台</th><th>版本</th><th>累计打开</th>
+          <th>首见</th><th>最近</th><th>备注</th><th>状态</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="note">新增陌生设备想排除：<code>bash tools/stats.sh exclude &lt;完整设备ID&gt; 备注</code></div>
+    </section>
+
+    <section>
+      <h2>每日明细（近 30 天）</h2>
+      <table id="tblDays">
+        <thead><tr>
+          <th>日期</th><th>打开次数</th><th>活跃设备</th><th>下载量</th><th>示意</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <footer id="foot"></footer>
+  </div>
+
+  <div id="loading" class="loading" style="display:none">正在拉取数据…（KV 读取有延迟，慢的时候要等十几秒）</div>
+  <div class="errbox" id="mainErr"></div>
+</div>
+
+<script>
+'use strict';
+const API = 'https://unchaxun.pages.dev/api/stats';
+const LS_KEY = 'uchx_stats_key';
+let KEY = '';
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+function showErr(id, msg) {
+  const box = document.getElementById(id);
+  box.style.display = 'block';
+  box.textContent = msg;
+}
+
+async function api(params) {
+  const q = new URLSearchParams(Object.assign({ key: KEY }, params));
+  const r = await fetch(API + '?' + q.toString());
+  const d = await r.json();
+  if (!r.ok || d.error) throw new Error(d.error || ('HTTP ' + r.status));
+  return d;
+}
+
+// ---------- 汇总卡片 ----------
+function renderCards(s) {
+  const dlSum = Object.values(s.downloadsToday || {}).reduce((a, b) => a + b, 0);
+  const devTotal = s.devicesTotal;
+  const cards = [
+    { num: s.today.opens, lab: '今天打开次数', hint: '原始 ' + s.today.opensRaw + ' 次，已排除 ' + s.today.excludedOpens + ' 次' },
+    { num: s.today.devices, lab: '今天活跃设备', hint: '原始 ' + s.today.devicesRaw + ' 台' },
+    { num: s.last7daysOpens, lab: '近 7 天打开合计', hint: '已排除自己的设备' },
+    { num: devTotal, lab: '累计出现过的设备', hint: '排除名单里的也算在首见里，已扣除' },
+    { num: dlSum, lab: '今天安装包下载', hint: '四个包合计' },
+  ];
+  document.getElementById('cards').innerHTML = cards.map(c =>
+    '<div class="card"><div class="num">' + esc(c.num) + '</div><div class="lab">' + esc(c.lab) +
+    '</div><div class="hint">' + esc(c.hint) + '</div></div>'
+  ).join('');
+}
+
+// ---------- 30 天趋势（纯 SVG 折线 + 面积） ----------
+function renderTrend(days) {
+  const svg = document.getElementById('chartTrend');
+  const W = 1000, H = 300, L = 46, R = 16, T = 18, B = 42;
+  const iw = W - L - R, ih = H - T - B;
+  const n = days.length;
+  const maxV = Math.max(1, ...days.map(d => Math.max(d.opens, d.devices)));
+  // 纵轴刻度取"好看的整数"
+  const step = Math.ceil(maxV / 4);
+  const top = Math.max(1, step * Math.ceil(maxV / step));
+  const x = i => L + (n === 1 ? iw / 2 : (i / (n - 1)) * iw);
+  const y = v => T + ih - (v / top) * ih;
+
+  let s = '';
+  // 横网格 + 刻度
+  for (let g = 0; g <= 4; g++) {
+    const v = top / 4 * g, yy = y(v);
+    s += '<line x1="' + L + '" y1="' + yy + '" x2="' + (W - R) + '" y2="' + yy + '" stroke="#CAC4D0" stroke-width="1" stroke-dasharray="' + (g === 0 ? 'none' : '3,4') + '"/>';
+    s += '<text x="' + (L - 8) + '" y="' + (yy + 4) + '" font-size="11" fill="#49454F" text-anchor="end">' + v + '</text>';
+  }
+  // 横轴日期（每隔几天标一个）
+  const labelEvery = n > 16 ? 5 : (n > 8 ? 3 : 1);
+  for (let i = 0; i < n; i++) {
+    if (i % labelEvery === 0 || i === n - 1) {
+      s += '<text x="' + x(i) + '" y="' + (H - B + 18) + '" font-size="11" fill="#49454F" text-anchor="middle">' + days[i].date.slice(5) + '</text>';
+    }
+  }
+  // 打开次数：面积 + 折线
+  let area = 'M ' + x(0) + ' ' + y(0);
+  let line = '';
+  days.forEach((d, i) => {
+    line += (i === 0 ? 'M ' : ' L ') + x(i) + ' ' + y(d.opens);
+  });
+  area = line + ' L ' + x(n - 1) + ' ' + y(0) + ' L ' + x(0) + ' ' + y(0) + ' Z';
+  s += '<path d="' + area + '" fill="#6750A3" opacity="0.14"/>';
+  s += '<path d="' + line + '" fill="none" stroke="#6750A3" stroke-width="2.5" stroke-linejoin="round"/>';
+  days.forEach((d, i) => {
+    if (d.opens > 0) s += '<circle cx="' + x(i) + '" cy="' + y(d.opens) + '" r="3" fill="#6750A3"/>';
+  });
+  // 活跃设备：折线
+  let line2 = '';
+  days.forEach((d, i) => {
+    line2 += (i === 0 ? 'M ' : ' L ') + x(i) + ' ' + y(d.devices);
+  });
+  s += '<path d="' + line2 + '" fill="none" stroke="#386A20" stroke-width="2" stroke-linejoin="round" stroke-dasharray="none"/>';
+  days.forEach((d, i) => {
+    if (d.devices > 0) s += '<circle cx="' + x(i) + '" cy="' + y(d.devices) + '" r="3" fill="#386A20"/>';
+  });
+  // 悬停提示：用一个覆盖层 + 标题（简单可靠）
+  days.forEach((d, i) => {
+    s += '<rect x="' + (x(i) - iw / (2 * Math.max(1, n - 1))) + '" y="' + T + '" width="' + (iw / Math.max(1, n - 1)) + '" height="' + ih + '" fill="transparent"><title>' +
+      d.date + '\n打开 ' + d.opens + ' 次（原始 ' + d.opensRaw + '）\n设备 ' + d.devices + ' 台（原始 ' + d.devicesRaw + '）</title></rect>';
+  });
+  svg.innerHTML = s;
+}
+
+// ---------- 版本分布 / 下载量：横向条形 ----------
+function renderBars(el, rows, colors) {
+  // rows: [{label, parts:[{v,color,name}], total, suffix}]
+  const maxT = Math.max(1, ...rows.map(r => r.total));
+  let html = '<table style="font-size:13px">';
+  for (const r of rows) {
+    const pct = (r.total / maxT) * 100;
+    let bar = '';
+    let acc = 0;
+    for (const p of r.parts) {
+      const w = (p.v / maxT) * 100;
+      bar += '<span style="display:inline-block;height:20px;width:' + w + '%;background:' + p.color +
+        ';border-radius:' + (acc === 0 ? '6px 0 0 6px' : '0') + (acc + p.v >= r.total ? ';border-radius:0 6px 6px 0' : '') +
+        '" title="' + esc(p.name + ': ' + p.v) + '"></span>';
+      acc += p.v;
+    }
+    if (!r.parts.length) bar = '<span style="display:inline-block;height:20px;width:2px;background:#CAC4D0;border-radius:6px"></span>';
+    html += '<tr><td style="width:92px;color:var(--on-surface-var)">' + esc(r.label) + '</td>' +
+      '<td><div style="position:relative;height:20px">' + bar +
+      '<span style="position:absolute;left:8px;top:1px;font-size:11.5px;color:#1D1B20;text-shadow:0 0 3px #fff">' + esc(r.total) + esc(r.suffix || '') + '</span></div></td></tr>';
+  }
+  html += '</table>';
+  el.innerHTML = html;
+}
+
+const DL_NAMES = { apk: '完整 APK', apk_lite: '精简 APK', exe: '完整 EXE', exe_lite: '精简 EXE' };
+const DL_COLORS = { apk: '#6750A3', apk_lite: '#B69DF8', exe: '#386A20', exe_lite: '#8BD4A0' };
+
+function renderVersionCharts(s) {
+  // 版本分布
+  const vers = Object.entries(s.versions || {}).sort();
+  renderBars(document.getElementById('chartVer'),
+    vers.map(([v, c]) => ({ label: v, parts: [{ v: c, color: '#6750A3', name: v }], total: c, suffix: ' 次' })));
+  // 下载量（按版本，堆叠四个包）
+  const dl = s.downloadsByVersion || {};
+  const rows = Object.keys(dl).sort().map(v => {
+    const parts = Object.entries(dl[v]).map(([f, c]) => ({ v: c, color: DL_COLORS[f] || '#999', name: (DL_NAMES[f] || f) + ': ' + c }));
+    const total = parts.reduce((a, p) => a + p.v, 0);
+    return { label: v, parts, total, suffix: ' 次' };
+  });
+  renderBars(document.getElementById('chartDl'), rows);
+  if (!rows.length) {
+    document.getElementById('chartDl').innerHTML = '<div class="note">还没有下载记录。</div>';
+  }
+}
+
+// ---------- 设备表 ----------
+function renderDevices(dev) {
+  const tb = document.querySelector('#tblDev tbody');
+  tb.innerHTML = dev.devices.map(d =>
+    '<tr><td style="font-family:Consolas,monospace;font-size:12px">' + esc(d.id) + '</td>' +
+    '<td>' + esc(d.platform || '-') + '</td>' +
+    '<td>' + esc(d.version || '-') + '</td>' +
+    '<td>' + (d.opens || 0) + '</td>' +
+    '<td>' + esc(d.first || '-') + '</td>' +
+    '<td>' + esc(d.last || '-') + '</td>' +
+    '<td class="wrap">' + esc(d.note || '') + '</td>' +
+    '<td>' + (d.excluded ? '<span class="tag ok">已排除</span>' : '<span class="tag err">计入</span>') +
+    (!d.hasProfile ? ' <span class="tag dim">旧版上报</span>' : '') + '</td></tr>'
+  ).join('') || '<tr><td colspan="8">还没有设备数据。</td></tr>';
+}
+
+// ---------- 每日明细 ----------
+function renderDays(s) {
+  const tb = document.querySelector('#tblDays tbody');
+  const maxO = Math.max(1, ...s.days.map(d => d.opens));
+  const rows = s.days.slice().reverse();
+  tb.innerHTML = rows.map(d => {
+    const dlSum = 0; // 按天的下载量在 d: 键里，summary 未逐天返回，留空
+    const barLen = Math.round((d.opens / maxO) * 30);
+    return '<tr><td>' + esc(d.date) + '</td>' +
+      '<td>' + d.opens + '</td><td>' + d.devices + '</td>' +
+      '<td>-</td>' +
+      '<td style="font-family:Consolas,monospace;color:#6750A3">' + ('#'.repeat(barLen) || '') + '</td></tr>';
+  }).join('');
+}
+
+// ---------- 主流程 ----------
+async function loadAll() {
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('mainErr').style.display = 'none';
+  try {
+    const [summary, dev] = await Promise.all([
+      api({ action: 'summary' }),
+      api({ action: 'devices' }).catch(() => ({ devices: [] })),
+    ]);
+    renderCards(summary);
+    renderTrend(summary.days);
+    renderVersionCharts(summary);
+    renderDevices(dev);
+    renderDays(summary);
+    document.getElementById('foot').textContent = '更新于 ' + new Date().toLocaleString('zh-CN') + ' · 数据按 UTC+8 切日 · 排除名单 ' + (summary.excluded || []).length + ' 台设备';
+  } catch (e) {
+    showErr('mainErr', '拉取失败：' + e.message + '。检查密钥和网络；接口偶尔慢，刷新重试一次。');
+  }
+  document.getElementById('loading').style.display = 'none';
+}
+
+function saveKey() {
+  const v = document.getElementById('keyInput').value.trim();
+  if (!v) { showErr('gateErr', '先填密钥'); return; }
+  KEY = v;
+  localStorage.setItem(LS_KEY, v);
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('main').style.display = 'block';
+  loadAll();
+}
+
+function boot() {
+  KEY = new URLSearchParams(location.search).get('key') || localStorage.getItem(LS_KEY) || '';
+  if (KEY) {
+    document.getElementById('main').style.display = 'block';
+    loadAll();
+  } else {
+    document.getElementById('gate').style.display = 'block';
+  }
+}
+boot();
+</script>
+</body>
+</html>

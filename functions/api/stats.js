@@ -29,7 +29,7 @@ const CORS = {
 };
 
 const DAY_TTL = 90 * 86400;
-const KEEP_DAYS = 14;
+const KEEP_DAYS = 30;
 
 function json(obj, status = 200) {
   return new Response(JSON.stringify(obj), {
