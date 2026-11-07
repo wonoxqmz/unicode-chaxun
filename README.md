@@ -279,6 +279,20 @@ https://unchaxun.pages.dev/version.json
 - 查询结果只在内存里用；落盘的只有两件小事：`unicode_update` 里的「自动检查开关状态」和「你点过以后再说的是哪个版本」
 - **不想要就关掉**：设置 → 关于本工具 → 「启动时自动检查更新」。关掉后不点「检查更新」按钮就一次请求都不会发
 
+### 匿名统计与下载计数（v0.2.30 起）
+
+作者需要知道「到底有没有人在用」，所以加了一个能关掉的匿名计数 —— **不接第三方统计**，全在自己这个 Cloudflare Pages 里。
+
+| 接口 | 做什么 | 存了什么 |
+|---|---|---|
+| `GET /api/stats?action=ping&id=…&v=…&p=…` | 应用启动时打一次 | 随机串的 SHA-1 前 20 位、按天累加的打开次数、版本号计数。**不存 IP、UA、查询内容**，也没有账号 |
+| `GET /api/dl?f=apk\|exe\|apk_lite\|exe_lite&v=x.y.z` | 安装包下载：先记一次数，再 302 到 Gitee Release | 按天 + 按版本的下载次数（Gitee 不提供下载次数接口） |
+| `GET /api/stats?action=summary&key=…` | 作者自己看汇总 | 需环境变量 `STATS_KEY`，没配就 403 |
+
+- **关掉**：设置 → 关于本工具 → 「匿名使用统计」，关掉后 `statPing()` 直接 return，一次请求都不发（键位 `unicode_stats_off`）
+- **看数据**：`bash tools/stats.sh`（脚本从 `~/.workbuddy/uchx_stats_key` 读 key，key 不进仓库）
+- 统计失败一律静默：断网、KV 挂了、函数报错都不影响应用正常使用和下载
+
 ### 维护者视角：发新版要做五件事
 
 1. 改 `index.html` 里的 `APP_VERSION`，**以及 README 顶部的「当前版本」行**（这行只手动更新，漏了就会像 0.1.4 → 0.2.1 那样在仓库首页挂旧版本号）
