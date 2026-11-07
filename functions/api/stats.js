@@ -219,7 +219,7 @@ export async function onRequest(context) {
     }
 
     const versions = {};
-    for (const ver of ['0.2.26', '0.2.27', '0.2.28', '0.2.29', '0.2.30']) {
+    for (const ver of ['0.2.26', '0.2.27', '0.2.28', '0.2.29', '0.2.30', '0.2.31']) {
       const c = parseInt((await env.SYNC.get('v:' + ver)) || '0', 10) || 0;
       if (c) versions[ver] = c;
     }
@@ -231,7 +231,7 @@ export async function onRequest(context) {
       dlToday[f] = parseInt((await env.SYNC.get('d:' + todayStats.date + ':' + f)) || '0', 10) || 0;
     }
     const dlVersion = {};
-    for (const ver of ['0.2.26', '0.2.27', '0.2.28', '0.2.29', '0.2.30']) {
+    for (const ver of ['0.2.26', '0.2.27', '0.2.28', '0.2.29', '0.2.30', '0.2.31']) {
       const row = {};
       let sum = 0;
       for (const f of dlFiles) {

@@ -14,6 +14,7 @@
 """
 
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -56,7 +57,7 @@ def main():
         sys.executable, "-m", "PyInstaller",
         "--noconfirm", mode, "--noconsole",
         "--name", "UnicodeChaxun",
-        # v0.2.15：exe 也带上应用图标（宣纸底宋体「字」+朱红小印）
+        # exe 也带上应用图标（码位格栅，图源见 tools/gen_icon.py）
         "--icon", os.path.join(DESKTOP, "icon.ico"),
         # 注意：这里必须写绝对路径。--add-data 的相对路径是按 .spec 所在目录算的，
         # 不是按当前工作目录，写 "index.html;." 会让 PyInstaller 找不到文件
@@ -98,10 +99,29 @@ def main():
     if not os.path.isfile(built):
         raise SystemExit("PyInstaller 没产出 %s" % built)
 
-    final = os.path.join(target_dir, ("Unicode编码查询-精简版.exe" if LITE else EXE_FINAL))
+    wanted = os.path.join(target_dir, ("Unicode编码查询-精简版.exe" if LITE else EXE_FINAL))
+    final = wanted
     # 用 replace 而不是先删再改名：本机删文件会走"移到回收站"的钩子，
-    # 大文件删除失败会让整个打包报错，replace 是原子覆盖，绕开这一步
-    os.replace(built, final)
+    # 大文件删除失败会让整个打包报错，replace 是原子覆盖，绕开这一步。
+    # v0.2.31：覆盖已有 exe 仍可能被系统钩子/杀软拦下（WinError 5），
+    # 构建已经跑了好几分钟，别让产物白费——落到带版本号的新文件，发版直接用它。
+    try:
+        os.replace(built, final)
+    except PermissionError:
+        ver = ""
+        try:
+            with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as fh:
+                m = re.search(r"const APP_VERSION = '([^']+)'", fh.read())
+                if m:
+                    ver = m.group(1)
+        except OSError:
+            pass
+        final = os.path.join(
+            target_dir,
+            "Unicode编码查询-v%s%s.exe" % (ver or "dev", "-精简版" if LITE else ""),
+        )
+        shutil.copy2(built, final)
+        print("!! 覆盖 %s 被拒绝，已改存：%s" % (os.path.basename(wanted), final))
 
     total = os.path.getsize(final)
     if ONEDIR:

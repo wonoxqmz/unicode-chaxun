@@ -1,13 +1,13 @@
 {
-  "latest": "0.2.30",
-  "date": "2026-11-07",
-  "notes": "新增可关闭的匿名使用统计（只上报随机串哈希 + 版本 + 平台，不记 IP / UA / 内容）；安装包下载改走自带计数的跳转，每版下载量自己数得到。",
+  "latest": "0.2.31",
+  "date": "2026-11-08",
+  "notes": "换了应用图标（码位格栅，一个字符一个地址）；翻面彩蛋显示 U+5B57；修字体上传只按后缀判断的漏洞，改为按文件头校验。",
   "downloads": {
     "web": "https://unchaxun.pages.dev/",
-    "apk": "https://unchaxun.pages.dev/api/dl?f=apk&v=0.2.30",
-    "exe": "https://unchaxun.pages.dev/api/dl?f=exe&v=0.2.30",
-    "apk_lite": "https://unchaxun.pages.dev/api/dl?f=apk_lite&v=0.2.30",
-    "exe_lite": "https://unchaxun.pages.dev/api/dl?f=exe_lite&v=0.2.30"
+    "apk": "https://unchaxun.pages.dev/api/dl?f=apk&v=0.2.31",
+    "exe": "https://unchaxun.pages.dev/api/dl?f=exe&v=0.2.31",
+    "apk_lite": "https://unchaxun.pages.dev/api/dl?f=apk_lite&v=0.2.31",
+    "exe_lite": "https://unchaxun.pages.dev/api/dl?f=exe_lite&v=0.2.31"
   },
   "release": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"
 }

@@ -1,6 +1,6 @@
 // Pages Function：安装包下载计数 + 跳转（这样才数得到「多少人下过」）
 //
-// GET /api/dl?f=apk|apk_lite|exe|exe_lite&v=0.2.30
+// GET /api/dl?f=apk|apk_lite|exe|exe_lite&v=0.2.31
 //   -> 先记一次数（d:<日期>:<f>、dw:<版本>:<f>），再 302 到 Gitee Release
 // Gitee 不给下载次数的 API，链接全部换成这条后才能看到真实下载量。
 // 计数失败也必须照常跳转：统计不能挡住下载。
