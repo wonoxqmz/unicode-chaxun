@@ -1015,10 +1015,13 @@ body.dark .pagination .pg-jump input { background: #1e2742; }
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.35);
   display: flex; align-items: center; justify-content: center;
-  z-index: 200; opacity: 0; pointer-events: none;
+  /* 层级基准：弹窗要盖住设置面板(200)与设置小卡片(250)；设置面板本身在下面单独压回 200 */
+  z-index: 300; opacity: 0; pointer-events: none;
   transition: opacity .2s;
 }
 .modal-overlay.show { opacity: 1; pointer-events: auto; }
+/* 设置面板留在 200：设置小卡片(250)和所有弹窗(300+)都要盖在它上面 */
+#settingsOverlay { z-index: 200; }
 .modal {
   background: var(--card); border-radius: 16px;
   width: 520px; max-width: 90vw;
@@ -1553,7 +1556,7 @@ body.mu .scard-head .sc-hicon {
   font-size: 13px; opacity: 0; pointer-events: none;
   transition: opacity calc(.3s * var(--anim-speed)) var(--ease-out),
               transform calc(.3s * var(--anim-speed)) var(--ease-spring);
-  z-index: 300;
+  z-index: 600;
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
@@ -1571,7 +1574,7 @@ body.mu .scard-head .sc-hicon {
   opacity: 0; pointer-events: none;
   transition: opacity calc(.28s * var(--anim-speed)) var(--ease-out),
               transform calc(.28s * var(--anim-speed)) var(--ease-spring);
-  z-index: 320;
+  z-index: 610;
 }
 .update-bar.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
 .update-bar .ub-text { flex: 1; min-width: 140px; }
@@ -2170,7 +2173,7 @@ body.dark .ai-err { color: #ef9a9a; }
 
 <!-- 字体对比弹层（v0.2.17）：z-index 210 盖过详情弹窗(200)；从 AI 面板进详情时详情也是 210，
      本层在 DOM 里更靠后所以仍在其上。点卡片 = 复制该字符。 -->
-<div class="modal-overlay" id="fontCompareOverlay" style="z-index:210" onmousedown="overlayPressOn(this, event)" onclick="overlayClickMaybe(this, event, closeFontCompare)">
+<div class="modal-overlay" id="fontCompareOverlay" style="z-index:310" onmousedown="overlayPressOn(this, event)" onclick="overlayClickMaybe(this, event, closeFontCompare)">
   <div class="modal" style="width:760px;max-width:94vw">
     <button class="modal-close" onclick="closeFontCompare()">×</button>
     <div class="modal-header">
@@ -2225,7 +2228,7 @@ body.dark .ai-err { color: #ef9a9a; }
 <!-- 自定义确认/输入弹窗（v0.2.12）：替代原生 confirm/prompt。
      file:// 下原生弹窗顶着「网址为"file://"的网页显示」的抬头，又丑又吓人；
      这里用应用内弹窗，样式和设置/详情弹窗一致。z-index 400 盖过设置(200)/更新条(320)/toast(300)。 -->
-<div class="modal-overlay" id="confirmOverlay" style="z-index:400" onmousedown="overlayPressOn(this, event)" onclick="overlayClickMaybe(this, event, cancelConfirmOverlay)">
+<div class="modal-overlay" id="confirmOverlay" style="z-index:500" onmousedown="overlayPressOn(this, event)" onclick="overlayClickMaybe(this, event, cancelConfirmOverlay)">
   <div class="modal" style="width:380px;max-width:88vw">
     <div class="modal-header" style="padding-top:22px">
       <div class="name" id="confirmTitle" style="font-size:16px">确认操作</div>
@@ -4568,7 +4571,7 @@ function wordDictOnLoaded() {
 
 
 // ===== 应用版本 =====
-const APP_VERSION = '0.2.28';
+const APP_VERSION = '0.2.29';
 const APP_UNICODE_VERSION = '17.0';   // 内置区块数据版本
 
 // 更新检查用的版本清单（静态 JSON，由 Cloudflare Pages 托管，仓库根目录 version.json）
@@ -8158,6 +8161,13 @@ function doSearch() {
 
   const result = parseSearch(q, mode);
   if (!result) {
+    // v0.2.29：代理项码位（U+D800–DFFF）不是合法字符，正式查询会被拦——
+    // 但「半个字符」彩蛋的触发方式就是查看 U+D800，解析失败时先问一句彩蛋引擎
+    const mSur = q.match(/^(?:[Uu]\+|0[xX])?([0-9A-Fa-f]{4,6})$/);
+    if (mSur) {
+      const surCp = parseInt(mSur[1], 16);
+      if (surCp >= 0xD800 && surCp <= 0xDFFF && eggCp(surCp)) { input.value = ''; return; }
+    }
     showToast('无法识别输入，请检查格式');
     return;
   }
@@ -9358,15 +9368,28 @@ function copyBatchColumn() {
 // ============================================================
 // silent=true：同一字符的原地重绘（保存编辑、切换收藏状态），
 // 不重复写浏览记录/操作日志，并保留弹窗滚动位置，避免编辑长释义后被打回顶部
+// 通用抬层：把要打开的弹窗顶到当前所有浮层之上。
+// 不写死数字，是因为浮层来源不一（设置小卡片 250、AI 面板/同步预览 300、字体对比 310…），
+// 固定数值迟早再撞一次；这里按“当前最高的那个 +1”算，关掉时各自还原。
+function raiseModalAbove(el) {
+  if (!el) return;
+  let top = 0;
+  const all = document.querySelectorAll('.modal-overlay.show, .scard-overlay.show');
+  for (let i = 0; i < all.length; i++) {
+    if (all[i] === el) continue;
+    const z = parseInt(getComputedStyle(all[i]).zIndex, 10) || 0;
+    if (z > top) top = z;
+  }
+  el.style.zIndex = String(Math.max(300, top + 1));
+}
 function showDetail(cp, silent) {
   const info = getCharInfo(cp);
   if (!info) { showToast('无效编码点'); return; }
   if (!silent) eggCp(cp);   // v0.2.22：查到特定码位（U+FEFF / U+202E …）会冒一个彩蛋
   // AI 面板(#aiOverlay)比本弹窗晚进 DOM，同 z-index 时会盖住详情——
   // 从 AI 面板里点字符卡 / 找字结果时，把详情临时顶到面板前面（关闭时在 closeModal 里还原）
-  const _aiOv = document.getElementById('aiOverlay');
   const _mOv = document.getElementById('modalOverlay');
-  if (_aiOv && _aiOv.classList.contains('show') && _mOv) _mOv.style.zIndex = 210;
+  raiseModalAbove(_mOv);
   const bodyEl = document.getElementById('modalBody');
   const keepScroll = (silent && detailCP === cp) ? bodyEl.scrollTop : 0;
   if (!silent) {
@@ -9680,13 +9703,9 @@ function showModal(title, bodyHTML, footerHTML, buttons) {
   }
   document.getElementById('modalFooter').innerHTML = footer;
   const _mo = document.getElementById('modalOverlay');
-  // v0.2.12：设置面板开着时弹出的窗（更新弹窗、导入确认等）要盖在设置上面——
-  // 两者同为 z-index:200，而 settingsOverlay 在 DOM 里靠后，不抬高就会被压在设置后面
-  try {
-    const _so = document.getElementById('settingsOverlay');
-    if (_so && _so.classList.contains('show')) _mo.style.zIndex = 240;
-  } catch (e) {}
+  // 不管是设置面板、设置小卡片还是 AI 面板里触发，都顶到当前所有浮层之上
   _mo.classList.add('show');
+  raiseModalAbove(_mo);
 }
 
 // ============================================================
@@ -9812,7 +9831,7 @@ function showZoomPreview(cp) {
   // 同 showDetail：AI 面板开着时把放大预览顶到最前（比详情还高一级）
   const _aiOv = document.getElementById('aiOverlay');
   const _zOv = document.getElementById('zoomOverlay');
-  if (_aiOv && _aiOv.classList.contains('show') && _zOv) _zOv.style.zIndex = 220;
+  if (_aiOv && _aiOv.classList.contains('show') && _zOv) _zOv.style.zIndex = 340;
   const flags = getCharFlags(cp);
   const displayText = flags.isInvisible ? flags.invisibleMark : info.char;
 
@@ -13219,7 +13238,13 @@ function renderSettingsBody() {
       <details style="margin-top:10px">
         <summary style="cursor:pointer;font-size:13px;font-weight:600;user-select:none">${ic('log')}更新日志</summary>
         <div class="app-changelog">
-          <h4>v0.2.28 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <h4>v0.2.29 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <ul>
+            <li><b>修「半个字符」彩蛋触发不了</b>：搜索 <code>U+D800</code> 这类代理项码位时，解析器会把它们当非法字符拦下、只弹「无法识别输入」，而这个彩蛋的触发方式恰恰是「查看 U+D800」，等于永远解不开。现在显式输入的代理项编码（<code>U+D800</code> / <code>0xD800</code> / <code>D800</code>）会先交给彩蛋引擎，该拦的照旧拦，该放的照放</li>
+            <li><b>同步预览不再被设置卡片盖住</b>：从设置小卡片里点「领取」，弹出的预览窗原来压在卡片后面，内容看不到、合并 / 覆盖也点不到。现在浮层层级统一成一套刻度（设置面板 200 → 小卡片 250 → 弹窗 300 → 字体对比 310 → 确认框 500 → toast 600），需要盖住已有浮层时按「当前最高 +1」动态抬，不再写死数字</li>
+            <li><b>同一套抬层逻辑顺手修了几处同类遮挡</b>：小卡片里开通用弹窗、小卡片里开字体对比、从 AI 面板 / 字体对比再点字符开详情，都保证新的那层在最上面</li>
+          </ul>
+          <h4>v0.2.28</h4>
           <ul>
             <li><b>左右滑终于真的跟手了</b>：根因是切栏目用的入场动画（<code>.view-enter-next/prev</code>）用了 <code>animation-fill-mode: both</code>，动画结束后仍然占着 <code>transform</code>，把跟手时写进去的内联 <code>translateX</code> 全盖掉了 —— 所以 v0.2.26 的跟手代码写了、却看起来完全没生效。现在改成 <code>backwards</code>，起手时也顺手清掉残留的动画 class</li>
             <li><b>设置卡片不再串门</b>：设置内容重渲染后，卡片里挂着的旧面板没被收走，和新面板撞同一个 id，两张叠在一起，点别的项也像打开同一张。现在重建前先清空</li>

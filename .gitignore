@@ -39,6 +39,7 @@ _deploy/
 _deploy.log
 # 交接文档等内部文档：只留本地，不上仓库
 交接文档.md
+弹窗层级修复说明.md
 # wrangler 本地缓存（部署脚本运行时生成）
 .wrangler/
 *.idsig
