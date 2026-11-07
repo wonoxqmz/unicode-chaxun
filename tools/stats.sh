@@ -6,6 +6,7 @@
 #   bash tools/stats.sh exclude <id>    把设备加入排除名单（可多个，空格隔开）
 #   bash tools/stats.sh exclude --list  看当前排除名单
 #   bash tools/stats.sh exclude --clear 清空排除名单
+#   bash tools/stats.sh reset [YYYY-MM-DD]  清掉某天（默认今天）的打开数据
 set -e
 cd "$(dirname "$0")/.."
 
@@ -51,6 +52,11 @@ if not rows:
 else:
     print('  %-22s %-10s %-8s %6s  %-11s %-11s %s' % ('设备ID', '平台', '版本', '打开', '首见', '最近', '状态'))
     for r in rows:
+        st = []
+        if r.get('excluded'):
+            st.append('已排除')
+        if not r.get('hasProfile'):
+            st.append('旧版上报')
         print('  %-22s %-10s %-8s %6d  %-11s %-11s %s' % (
             r.get('id', ''),
             r.get('platform') or '-',
@@ -58,7 +64,7 @@ else:
             r.get('opens') or 0,
             r.get('first') or '-',
             r.get('last') or '-',
-            '已排除' if r.get('excluded') else ''))
+            ' '.join(st)))
 print('')
 print('排除自己的设备：bash tools/stats.sh exclude <上面完整的设备ID>')
 "
@@ -110,6 +116,18 @@ print(','.join(merged) + '\n', end='')
     rm -f _ex.json _exids.txt
     echo "已更新排除名单"
     "$0" exclude --list
+    ;;
+
+  reset)
+    shift || true
+    D="${1:-}"
+    Q="action=reset&key=$KEY"
+    [ -n "$D" ] && Q="$Q&date=$D"
+    echo "!! 这会清掉当天的打开数据（不可恢复），5 秒内 Ctrl+C 可取消"
+    sleep 5
+    api "$Q" _rs.json
+    cat _rs.json; echo
+    rm -f _rs.json
     ;;
 
   *)

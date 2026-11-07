@@ -269,5 +269,32 @@ export async function onRequest(context) {
     return json({ ok: true, excluded: arr });
   }
 
+  // 清掉某一天的打开数据（作者专用：测试期把噪音抹干净）
+  if (action === 'reset') {
+    const bad = authFail(env, url);
+    if (bad) return bad;
+
+    const d = (url.searchParams.get('date') || today()).replace(/[^\d-]/g, '');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return json({ error: 'bad_date' }, 400);
+
+    let deleted = 0;
+    for (const prefix of ['u:' + d + ':', 'ud:' + d + ':']) {
+      let cursor;
+      for (let i = 0; i < 20; i++) {
+        const page = await env.SYNC.list({ prefix, limit: 1000, cursor });
+        for (const k of page.keys) {
+          await env.SYNC.delete(k.name);
+          deleted++;
+        }
+        if (page.list_complete) break;
+        cursor = page.cursor;
+      }
+    }
+    await env.SYNC.delete('p:' + d);
+    deleted++;
+
+    return json({ ok: true, date: d, deleted });
+  }
+
   return json({ error: 'unknown_action' }, 400);
 }
