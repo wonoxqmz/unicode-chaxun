@@ -94,11 +94,25 @@ for x in ex:
         exit 0
         ;;
     esac
-    # 追加：参数里 20 位以上 hex 当设备ID，紧随其后的文字当备注
-    api "action=exclude&key=$KEY" _ex.json
-    IDS=$("$PY" -c "
-import json, re, sys
-cur = json.load(open('_ex.json', encoding='utf-8')).get('excluded') or []
+    # 追加：20 位以上 hex 当设备ID，紧随其后的文字当备注
+    # 注意：URL 里带中文必须由 Python 编码，curl 拼中文会卡死
+    "$PY" -c "
+import json, os, re, sys, time, urllib.parse, urllib.request
+key = open(os.path.expanduser('~/.workbuddy/uchx_stats_key')).read().strip()
+base = 'https://unchaxun.pages.dev/api/stats'
+def call(p):
+    q = urllib.parse.urlencode(p)
+    req = urllib.request.Request(base + '?' + q, headers={'User-Agent': 'Mozilla/5.0 uchx-stats/1.0'})
+    err = None
+    for _ in range(3):
+        try:
+            with urllib.request.urlopen(req, timeout=90) as r:
+                return json.loads(r.read().decode())
+        except Exception as e:
+            err = e
+            time.sleep(2)
+    raise err
+cur = call({'action': 'exclude', 'key': key}).get('excluded') or []
 m = {x['id']: (x.get('note') or '') for x in cur}
 last = None
 for a in sys.argv[1:]:
@@ -110,24 +124,15 @@ for a in sys.argv[1:]:
         last = a
     elif last:
         m[last] = a[:20]
-print(','.join(('%s|%s' % (k, v)) if v else k for k, v in m.items()), end='')
-" "$@")
-
-    if [ -z "$IDS" ]; then
-      echo "!! 没给设备ID。用法：bash tools/stats.sh exclude <完整设备ID> [备注]"
-      rm -f _ex.json
-      exit 1
-    fi
-
-    curl -s --retry 3 --retry-delay 2 -m 150 -G "$BASE" \
-      --data-urlencode "action=exclude" \
-      --data-urlencode "key=$KEY" \
-      --data-urlencode "set=$IDS" \
-      -o _ex.json
-    head -c 1 _ex.json | grep -q '{' || { echo "写入失败："; head -c 200 _ex.json; echo; rm -f _ex.json; exit 1; }
-    rm -f _ex.json
-    echo "已更新排除名单"
-    "$0" exclude --list
+if not m:
+    print('!! 没给设备ID。用法：bash tools/stats.sh exclude <完整设备ID> [备注]')
+    sys.exit(1)
+s = ','.join(('%s|%s' % (k, v)) if v else k for k, v in m.items())
+r = call({'action': 'exclude', 'key': key, 'set': s})
+print('已更新排除名单：')
+for x in r.get('excluded') or []:
+    print('  %-22s %s' % (x['id'], x.get('note') or '-'))
+" "$@"
     ;;
 
   reset)
