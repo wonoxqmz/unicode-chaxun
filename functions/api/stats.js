@@ -5,13 +5,21 @@
 // GET /api/stats?action=summary&key=<STATS_KEY>
 //     作者自己看的汇总（未配置 STATS_KEY 时直接 403）
 //
+// GET /api/stats?action=devices&key=<STATS_KEY>
+//     列出见过的设备（只给作者，用来认出"哪些是我自己的机器"）
+// GET /api/stats?action=exclude&key=<STATS_KEY>[&set=id1,id2]
+//     读取 / 全量替换排除名单（名单里的设备不计入统计）
+//
 // KV 键位：
 //   p:<YYYY-MM-DD>        当天打开次数
 //   u:<YYYY-MM-DD>:<hash> 当天活跃设备（90 天过期）
+//   ud:<YYYY-MM-DD>:<hash> 该设备当天的打开次数（用于剔除自己的设备，90 天过期）
 //   i:<hash>              设备首次出现的日期（不过期）
+//   ui:<hash>             设备画像 {p:平台, v:版本, first, last, n:累计打开}（不过期）
 //   v:<version>           各版本打开次数
 //   d:<YYYY-MM-DD>:<f>    当天各安装包下载次数（由 api/dl.js 写入）
 //   dw:<version>:<f>      各版本安装包累计下载次数
+//   cfg:exclude           排除名单 [{id, note, at}]（自己的设备，不计入报表）
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -28,6 +36,14 @@ function json(obj, status = 200) {
     status,
     headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...CORS },
   });
+}
+
+// 作者接口的统一鉴权：没配 key 一律 403，传错也 403
+function authFail(env, url) {
+  const need = env.STATS_KEY;
+  if (!need) return json({ error: 'not_configured' }, 403);
+  if ((url.searchParams.get('key') || '') !== need) return json({ error: 'forbidden' }, 403);
+  return null;
 }
 
 // 用 UTC+8 切日，和用户眼里的「今天」对齐
@@ -63,6 +79,25 @@ async function countPrefix(kv, prefix, cap = 20000) {
   return total;
 }
 
+const EXCLUDE_KEY = 'cfg:exclude';
+
+// 读排除名单：只接受 [{id, note, at}] 形状，坏数据一律当空
+async function loadExclude(kv) {
+  try {
+    const raw = await kv.get(EXCLUDE_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) return [];
+    return arr.filter(x => x && typeof x.id === 'string' && /^[a-f0-9]{8,40}$/.test(x.id));
+  } catch {
+    return [];
+  }
+}
+
+function excludedSet(list) {
+  return new Set(list.map(x => x.id));
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
   if (request.method === 'OPTIONS') return new Response(null, { headers: CORS });
@@ -81,6 +116,8 @@ export async function onRequest(context) {
 
     await bump(env.SYNC, 'p:' + d);
     await env.SYNC.put('u:' + d + ':' + id, '1', { expirationTtl: DAY_TTL });
+    // 每台设备当天的打开次数：报表里要按设备剔除"我自己的机器"
+    await bump(env.SYNC, 'ud:' + d + ':' + id, 1, DAY_TTL);
 
     const seen = await env.SYNC.get('i:' + id);
     if (!seen) await env.SYNC.put('i:' + id, d);
@@ -88,24 +125,58 @@ export async function onRequest(context) {
     const ver = (url.searchParams.get('v') || '').replace(/[^\d.]/g, '').slice(0, 12);
     if (ver) await bump(env.SYNC, 'v:' + ver);
 
+    // 设备画像，方便认出哪台是自己的
+    const plat = (url.searchParams.get('p') || '').replace(/[^a-zA-Z]/g, '').slice(0, 12);
+    let prev = {};
+    try { prev = JSON.parse((await env.SYNC.get('ui:' + id)) || '{}') || {}; } catch { prev = {}; }
+    await env.SYNC.put('ui:' + id, JSON.stringify({
+      p: plat || prev.p || '',
+      v: ver || prev.v || '',
+      first: prev.first || seen || d,
+      last: d,
+      n: (parseInt(prev.n, 10) || 0) + 1,
+    }));
+
     return json({ ok: true });
   }
 
   if (action === 'summary') {
-    const need = env.STATS_KEY;
-    const got = url.searchParams.get('key') || '';
-    if (!need) return json({ error: 'not_configured' }, 403);
-    if (got !== need) return json({ error: 'forbidden' }, 403);
+    const bad = authFail(env, url);
+    if (bad) return bad;
+
+    // 排除名单：自己的电脑 / 手机，报表里直接扣掉
+    const exList = await loadExclude(env.SYNC);
+    const exSet = excludedSet(exList);
 
     const days = [];
     for (let i = 0; i < KEEP_DAYS; i++) {
       const d = dayOffset(i);
-      const opens = parseInt((await env.SYNC.get('p:' + d)) || '0', 10) || 0;
-      const uniq = await countPrefix(env.SYNC, 'u:' + d + ':');
-      days.push({ date: d, opens, devices: uniq });
+      const opensRaw = parseInt((await env.SYNC.get('p:' + d)) || '0', 10) || 0;
+      const uniqRaw = await countPrefix(env.SYNC, 'u:' + d + ':');
+
+      // 只读排除名单里那几个键，不从 p: 里反推，成本可控
+      let exOpens = 0;
+      let exDevices = 0;
+      for (const h of exSet) {
+        const c = parseInt((await env.SYNC.get('ud:' + d + ':' + h)) || '0', 10) || 0;
+        if (c > 0) { exOpens += c; exDevices++; }
+      }
+
+      days.push({
+        date: d,
+        opens: Math.max(0, opensRaw - exOpens),
+        devices: Math.max(0, uniqRaw - exDevices),
+        // 原始值留着，想看"含自己"的总量时用得上
+        opensRaw,
+        devicesRaw: uniqRaw,
+        excludedOpens: exOpens,
+      });
     }
 
-    const installs = await countPrefix(env.SYNC, 'i:');
+    let installs = await countPrefix(env.SYNC, 'i:');
+    for (const h of exSet) {
+      if (await env.SYNC.get('i:' + h)) installs = Math.max(0, installs - 1);
+    }
     const todayStats = days[0];
     const weekOpens = days.slice(0, 7).reduce((s, x) => s + x.opens, 0);
 
@@ -140,8 +211,59 @@ export async function onRequest(context) {
       versions,
       downloadsToday: dlToday,
       downloadsByVersion: dlVersion,
+      excluded: exList,
       days,
     });
+  }
+
+  // 设备清单：认人用（哪台是自己的电脑/手机）
+  if (action === 'devices') {
+    const bad = authFail(env, url);
+    if (bad) return bad;
+
+    const exSet2 = excludedSet(await loadExclude(env.SYNC));
+    const list = [];
+    let cursor;
+    for (let i = 0; i < 10; i++) {
+      const page = await env.SYNC.list({ prefix: 'ui:', limit: 1000, cursor });
+      for (const k of page.keys) {
+        const h = k.name.slice(3);
+        let meta = {};
+        try { meta = JSON.parse((await env.SYNC.get(k.name)) || '{}') || {}; } catch { meta = {}; }
+        list.push({
+          id: h,
+          short: h.slice(0, 8),
+          platform: meta.p || '',
+          version: meta.v || '',
+          first: meta.first || '',
+          last: meta.last || '',
+          opens: parseInt(meta.n, 10) || 0,
+          excluded: exSet2.has(h),
+        });
+      }
+      if (page.list_complete) break;
+      cursor = page.cursor;
+    }
+    list.sort((a, b) => b.opens - a.opens || (b.last > a.last ? 1 : -1));
+    return json({ ok: true, count: list.length, devices: list.slice(0, 300) });
+  }
+
+  // 排除名单：GET 读，带 set= 全量写
+  if (action === 'exclude') {
+    const bad = authFail(env, url);
+    if (bad) return bad;
+
+    const set = url.searchParams.get('set');
+    if (set === null) return json({ ok: true, excluded: await loadExclude(env.SYNC) });
+
+    const ids = Array.from(new Set(
+      set.split(',').map(s => s.trim()).filter(s => /^[a-f0-9]{8,40}$/.test(s))
+    ));
+    const note = (url.searchParams.get('note') || '').slice(0, 40);
+    const at = today();
+    const arr = ids.map(id => ({ id, note, at }));
+    await env.SYNC.put(EXCLUDE_KEY, JSON.stringify(arr));
+    return json({ ok: true, excluded: arr });
   }
 
   return json({ error: 'unknown_action' }, 400);
