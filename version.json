@@ -1,13 +1,13 @@
 {
-  "latest": "0.2.27",
+  "latest": "0.2.28",
   "date": "2026-11-07",
-  "notes": "彩蛋完整解锁攻略只在图鉴里（52 个逐条带「直接玩一次」），原来指向仓库离线 md 的说明撤掉了；那份全剧透 md 已从公开仓库移出、只留本地。",
+  "notes": "左右滑切栏目终于真的跟手了（入场动画占着 transform，把内联位移全盖掉了）；设置卡片不再串门、改设置不再弹回顶部；「滑到底」彩蛋不再连发；设置图标下的说明文字撤了；AI 对话记录可在设置里手动清空。",
   "downloads": {
     "web": "https://unchaxun.pages.dev/",
-    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.27/unicode-chaxun-v0.2.27.apk",
-    "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.27/unicode-chaxun-v0.2.27.exe",
-    "apk_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.27/unicode-chaxun-v0.2.27-lite.apk",
-    "exe_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.27/unicode-chaxun-v0.2.27-lite.exe"
+    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.28/unicode-chaxun-v0.2.28.apk",
+    "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.28/unicode-chaxun-v0.2.28.exe",
+    "apk_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.28/unicode-chaxun-v0.2.28-lite.apk",
+    "exe_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.28/unicode-chaxun-v0.2.28-lite.exe"
   },
   "release": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"
 }
