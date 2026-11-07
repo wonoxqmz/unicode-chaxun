@@ -373,7 +373,9 @@ function saveKey() {
 }
 
 function boot() {
-  KEY = new URLSearchParams(location.search).get('key') || localStorage.getItem(LS_KEY) || '';
+  const fromUrl = new URLSearchParams(location.search).get('key');
+  KEY = fromUrl || localStorage.getItem(LS_KEY) || '';
+  if (fromUrl) localStorage.setItem(LS_KEY, fromUrl);   // 快捷方式带 key 打开时顺手记住
   if (KEY) {
     document.getElementById('main').style.display = 'block';
     loadAll();
