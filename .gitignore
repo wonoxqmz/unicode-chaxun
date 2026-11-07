@@ -66,3 +66,6 @@ browser-screenshots/
 
 # 本地跳板页：内含统计 key，不进仓库
 open-panel.html
+
+# 发版时改名成 ASCII 的上传暂存目录（四个安装包，几十 MB，不进仓库）
+_upload/
