@@ -4571,7 +4571,7 @@ function wordDictOnLoaded() {
 
 
 // ===== 应用版本 =====
-const APP_VERSION = '0.2.29';
+const APP_VERSION = '0.2.30';
 const APP_UNICODE_VERSION = '17.0';   // 内置区块数据版本
 
 // 更新检查用的版本清单（静态 JSON，由 Cloudflare Pages 托管，仓库根目录 version.json）
@@ -11839,6 +11839,57 @@ function scheduleUpdateCheck() {
 }
 
 // ============================================================
+// v0.2.30：匿名使用统计（自己数，不接第三方）
+// 只上报一个本机随机串、版本号、平台，用来算「今天多少台设备打开过」。
+// 服务端存的是随机串的哈希，不存 IP / UA / 内容；设置里可以关。
+// ============================================================
+const STATS_API = 'https://unchaxun.pages.dev/api/stats';
+const STATS_OPT_OUT = 'unicode_stats_off';
+
+function statsOptedOut() {
+  try { return localStorage.getItem(STATS_OPT_OUT) === '1'; } catch (e) { return false; }
+}
+function statsId() {
+  try {
+    var id = localStorage.getItem('unicode_stat_id');
+    if (id && /^[A-Za-z0-9_-]{8,40}$/.test(id)) return id;
+    var s = '', bytes = new Uint8Array(12);
+    try { crypto.getRandomValues(bytes); } catch (e) {}
+    for (var i = 0; i < 12; i++) {
+      var b = bytes[i];
+      if (!b) b = Math.floor(Math.random() * 256);
+      s += ('0' + b.toString(16)).slice(-2);
+    }
+    localStorage.setItem('unicode_stat_id', s);
+    return s;
+  } catch (e) { return ''; }
+}
+function statPing() {
+  try {
+    if (statsOptedOut()) return;
+    if (navigator.onLine === false) return;
+    var id = statsId();
+    if (!id) return;
+    var url = STATS_API + '?action=ping&id=' + encodeURIComponent(id)
+      + '&v=' + encodeURIComponent(APP_VERSION) + '&p=' + encodeURIComponent(appPlatform());
+    // 等首屏画完再打，别和字符数据抢带宽
+    setTimeout(function () {
+      try { fetch(url, { mode: 'cors', keepalive: true }).catch(function () {}); } catch (e) {}
+    }, 1800);
+  } catch (e) {}
+}
+function toggleUsageStats() {
+  var off = !statsOptedOut();
+  try { localStorage.setItem(STATS_OPT_OUT, off ? '1' : '0'); } catch (e) {}
+  var sw = document.getElementById('usageStatSwitch');
+  var lb = document.getElementById('usageStatLabel');
+  if (sw) sw.classList.toggle('on', !off);
+  if (lb) lb.textContent = '匿名使用统计（' + (off ? '已关闭' : '开启') + '）';
+  showToast(off ? '已关闭匿名统计，之后不再上报' : '已开启匿名统计，谢谢');
+  if (!off) statPing();
+}
+
+// ============================================================
 // 设置面板（新增）
 // ============================================================
 function showSettings() {
@@ -13203,7 +13254,7 @@ function renderSettingsBody() {
       <details class="sc-more">
         <summary>这个工具是做什么的</summary>
         <div class="sc-more-body">
-          <p>一个纯前端的 Unicode 字符查询与浏览工具：支持智能搜索、字符对比、批量编解码互转、按平面/区块浏览全部 346 个区块、随机字符、收藏分组管理、字符含义字典与图片导出。单 HTML 文件，你的收藏 / 字义 / 记录全部存在本机、不上传。除了你自己主动触发的功能（在线获取数据、同步、AI 助手、检查更新）以外，不产生任何网络请求。</p>
+          <p>一个纯前端的 Unicode 字符查询与浏览工具：支持智能搜索、字符对比、批量编解码互转、按平面/区块浏览全部 346 个区块、随机字符、收藏分组管理、字符含义字典与图片导出。单 HTML 文件，你的收藏 / 字义 / 记录全部存在本机、不上传。除了你自己主动触发的功能（在线获取数据、同步、AI 助手、检查更新）和一个可在设置里关掉的匿名启动计数以外，不产生任何网络请求。</p>
         </div>
       </details>
 
@@ -13234,11 +13285,24 @@ function renderSettingsBody() {
         <p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.7">
           检查方式就是 GET 一个公开的 <code>version.json</code>（里面只有版本号、更新说明和下载地址），不带你的任何信息、不上报任何数据。关掉上面这个开关后一次请求都不会发，想查的时候点「检查更新」手动看。
         </p>
+        <button class="set-switch${statsOptedOut() ? '' : ' on'}" id="usageStatSwitch" onclick="toggleUsageStats()" style="margin-top:10px">
+          <span class="track"><span class="thumb"></span></span>
+          <span class="lbl" id="usageStatLabel">匿名使用统计（${statsOptedOut() ? '已关闭' : '开启'}）</span>
+        </button>
+        <p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.7">
+          启动时往 <code>api/stats</code> 打一个点，只带「本机随机串的哈希 + 版本号 + 平台」。不记 IP、不记 UA、不记你查了什么，也不用账号 —— 这是作者唯一能知道「到底有没有人在用」的办法。关掉就不再上报。
+        </p>
       </div>
       <details style="margin-top:10px">
         <summary style="cursor:pointer;font-size:13px;font-weight:600;user-select:none">${ic('log')}更新日志</summary>
         <div class="app-changelog">
-          <h4>v0.2.29 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <h4>v0.2.30 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <ul>
+            <li><b>加了匿名使用统计</b>：应用启动时往自己的 Cloudflare 函数打一个点，只带「本机随机串的哈希 + 版本号 + 平台」——不记 IP、不记 UA、不记查询内容，也不用账号。这是作者唯一能知道有没有人在用的办法，设置 → 关于本工具里可以一键关掉</li>
+            <li><b>下载链接换成自己的计数跳转</b>：安装包下载改走 <code>api/dl</code> 再 302 到 Gitee，这样每一版的 APK / EXE 被下了多少次自己数得到（Gitee 不给下载次数的接口）</li>
+            <li><b>离线 / 统计服务挂了都不影响用</b>：上报失败静默吞掉，下载跳转即使计数出错也照常放行</li>
+          </ul>
+          <h4>v0.2.29</h4>
           <ul>
             <li><b>修「半个字符」彩蛋触发不了</b>：搜索 <code>U+D800</code> 这类代理项码位时，解析器会把它们当非法字符拦下、只弹「无法识别输入」，而这个彩蛋的触发方式恰恰是「查看 U+D800」，等于永远解不开。现在显式输入的代理项编码（<code>U+D800</code> / <code>0xD800</code> / <code>D800</code>）会先交给彩蛋引擎，该拦的照旧拦，该放的照放</li>
             <li><b>同步预览不再被设置卡片盖住</b>：从设置小卡片里点「领取」，弹出的预览窗原来压在卡片后面，内容看不到、合并 / 覆盖也点不到。现在浮层层级统一成一套刻度（设置面板 200 → 小卡片 250 → 弹窗 300 → 字体对比 310 → 确认框 500 → toast 600），需要盖住已有浮层时按「当前最高 +1」动态抬，不再写死数字</li>
@@ -13925,6 +13989,8 @@ setTimeout(function () {
 }, 2500);
 // 启动时（可选）检查一次新版本：延迟几秒，等首屏和字符数据都加载完再发
 scheduleUpdateCheck();
+// v0.2.30：匿名启动计数（可在设置里关；失败静默，不影响任何功能）
+statPing();
 // 初始化完成：此后的脚本错误属于可恢复的运行时错误，不该再升级成「页面未能正常启动」横幅
 try { const _sp = document.getElementById('loadingSplash'); if (_sp) _sp.remove(); } catch (_) {}
 appReady = true;

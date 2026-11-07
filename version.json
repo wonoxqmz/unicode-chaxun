@@ -1,13 +1,13 @@
 {
-  "latest": "0.2.29",
+  "latest": "0.2.30",
   "date": "2026-11-07",
-  "notes": "修「半个字符」彩蛋触发不了（U+D800 这类代理项被解析器拦死）；同步预览不再被设置卡片盖住，浮层层级统一刻度并按「当前最高 +1」动态抬层。",
+  "notes": "新增可关闭的匿名使用统计（只上报随机串哈希 + 版本 + 平台，不记 IP / UA / 内容）；安装包下载改走自带计数的跳转，每版下载量自己数得到。",
   "downloads": {
     "web": "https://unchaxun.pages.dev/",
-    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.29/unicode-chaxun-v0.2.29.apk",
-    "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.29/unicode-chaxun-v0.2.29.exe",
-    "apk_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.29/unicode-chaxun-v0.2.29-lite.apk",
-    "exe_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.29/unicode-chaxun-v0.2.29-lite.exe"
+    "apk": "https://unchaxun.pages.dev/api/dl?f=apk&v=0.2.30",
+    "exe": "https://unchaxun.pages.dev/api/dl?f=exe&v=0.2.30",
+    "apk_lite": "https://unchaxun.pages.dev/api/dl?f=apk_lite&v=0.2.30",
+    "exe_lite": "https://unchaxun.pages.dev/api/dl?f=exe_lite&v=0.2.30"
   },
   "release": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"
 }
