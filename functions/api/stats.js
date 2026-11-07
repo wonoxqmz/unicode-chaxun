@@ -317,6 +317,32 @@ export async function onRequest(context) {
     return json({ ok: true, excluded: arr });
   }
 
+  // 删掉某个来源标签的全部记录（作者专用：自检数据、打错标签时清理）
+  if (action === 'refdel') {
+    const bad = authFail(env, url);
+    if (bad) return bad;
+    const tag = (url.searchParams.get('tag') || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 20);
+    if (!tag) return json({ error: 'bad_tag' }, 400);
+    let deleted = 0;
+    await env.SYNC.delete('reftotal:' + tag);
+    deleted++;
+    for (const prefix of ['ref:', 'refdev:']) {
+      let c2;
+      for (let i = 0; i < 20; i++) {
+        const page = await env.SYNC.list({ prefix, limit: 1000, cursor: c2 });
+        for (const k of page.keys) {
+          if (k.name.endsWith(':' + tag) || k.name.includes(':' + tag + ':')) {
+            await env.SYNC.delete(k.name);
+            deleted++;
+          }
+        }
+        if (page.list_complete) break;
+        c2 = page.cursor;
+      }
+    }
+    return json({ ok: true, tag, deleted });
+  }
+
   // 清掉某一天的打开数据（作者专用：测试期把噪音抹干净）
   if (action === 'reset') {
     const bad = authFail(env, url);
