@@ -115,12 +115,31 @@ export async function onRequest(context) {
       if (c) versions[ver] = c;
     }
 
+    // 下载量：当天各包 + 各版本累计（由 api/dl.js 写入）
+    const dlFiles = ['apk', 'apk_lite', 'exe', 'exe_lite'];
+    const dlToday = {};
+    for (const f of dlFiles) {
+      dlToday[f] = parseInt((await env.SYNC.get('d:' + todayStats.date + ':' + f)) || '0', 10) || 0;
+    }
+    const dlVersion = {};
+    for (const ver of ['0.2.26', '0.2.27', '0.2.28', '0.2.29', '0.2.30']) {
+      const row = {};
+      let sum = 0;
+      for (const f of dlFiles) {
+        const c = parseInt((await env.SYNC.get('dw:' + ver + ':' + f)) || '0', 10) || 0;
+        if (c) { row[f] = c; sum += c; }
+      }
+      if (sum) dlVersion[ver] = row;
+    }
+
     return json({
       ok: true,
       today: todayStats,
       last7daysOpens: weekOpens,
       devicesTotal: installs,
       versions,
+      downloadsToday: dlToday,
+      downloadsByVersion: dlVersion,
       days,
     });
   }
