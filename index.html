@@ -4563,7 +4563,7 @@ function wordDictOnLoaded() {
 
 
 // ===== 应用版本 =====
-const APP_VERSION = '0.2.25';
+const APP_VERSION = '0.2.26';
 const APP_UNICODE_VERSION = '17.0';   // 内置区块数据版本
 
 // 更新检查用的版本清单（静态 JSON，由 Cloudflare Pages 托管，仓库根目录 version.json）
@@ -6412,6 +6412,8 @@ function buildCategoryIndex() {
 // ============================================================
 // v0.2.3：滑动切换时临时置为 +1 / -1，让新栏目按方向滑进来；平时是 0（竖向淡入）
 let _swipeDir = 0;
+// 跟手切换进行中：setActiveNav 跳过 CSS 入场动画，transform 交给手势接管
+let _swipeAnim = false;
 function setActiveNav(view) {
   // 清理所有无限滚动监听
   detachBlockScroll();
@@ -6437,7 +6439,7 @@ function setActiveNav(view) {
   } catch (e) {}
   // 触发视图切换动画
   const scroll = document.getElementById('contentScroll');
-  if (scroll) {
+  if (scroll && !_swipeAnim) {
     const cls = _swipeDir > 0 ? 'view-enter-next' : (_swipeDir < 0 ? 'view-enter-prev' : 'view-enter');
     scroll.classList.remove('view-enter', 'view-enter-next', 'view-enter-prev');
     void scroll.offsetWidth; // 强制重排以重新启动动画
@@ -6524,22 +6526,43 @@ function swipeInScrollX(el) {
   return false;
 }
 function initSwipeNav() {
-  let sx = 0, sy = 0, st = 0, active = false, locked = false;
+  let sx = 0, sy = 0, st = 0, active = false, locked = false, busy = false;
+  const sc = function () { return document.getElementById('contentScroll'); };
   function overlayOpen() {
     return ['settingsOverlay', 'modalOverlay', 'zoomOverlay', 'confirmOverlay'].some(function (id) {
       const el = document.getElementById(id);
       return el && el.classList.contains('show');
     });
   }
+  function curIndex() { return SWIPE_VIEWS.indexOf(swipeCurrentView()); }
+  // 头尾边界：往没有更多栏目的方向拽时给橡皮筋阻力，别让内容飘走
+  function dragDx(dx) {
+    const i = curIndex();
+    if ((dx > 0 && i <= 0) || (dx < 0 && i >= SWIPE_VIEWS.length - 1)) return dx * 0.32;
+    return dx;
+  }
+  // 松手不切页 / 回弹：把内容弹回正中
+  function settle(scroll) {
+    if (!scroll) return;
+    scroll.style.transition = 'transform .26s var(--ease-spring, cubic-bezier(.34,1.56,.64,1))';
+    scroll.style.transform = 'translateX(0)';
+    setTimeout(function () {
+      if (scroll) { scroll.style.transition = ''; scroll.style.transform = ''; }
+    }, 340);
+  }
   document.addEventListener('touchstart', function (e) {
     active = false; locked = false;
+    if (busy) return;                          // 上一波切换动画还没收尾，先不抢手势
     if (!swipeEnabled()) return;
-    if (e.touches.length !== 1) return;         // 双指缩放之类的直接放行
+    if (e.touches.length !== 1) return;        // 双指缩放之类的直接放行
     if (overlayOpen()) return;
     const t = e.target;
     if (t && t.closest && t.closest('.sidebar, input, textarea, select, [contenteditable="true"], .no-swipe')) return;
     if (swipeInScrollX(t)) return;
     const p = e.touches[0];
+    // 屏幕最左缘留给系统 Predictive Back（Android 13+ 从左侧边缘往回滑的手势），
+    // 那道手势归系统管，应用内滑动从内容区起手，不去抢同一根手指
+    if (p.clientX <= 16) return;
     sx = p.clientX; sy = p.clientY; st = Date.now();
     active = true;
   }, { passive: true });
@@ -6550,27 +6573,59 @@ function initSwipeNav() {
     const p = e.touches[0];
     const dx = p.clientX - sx, dy = p.clientY - sy;
     if (!locked) {
-      if (Math.abs(dx) < 12 && Math.abs(dy) < 12) return;      // 还没动够，先不定主意
+      if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;      // 还没动够，先不定主意
       if (Math.abs(dx) > Math.abs(dy) * 1.4) locked = true;    // 横向意图明确
-      else { active = false; return; }                        // 竖直手势 → 交回页面滚动
+      else { active = false; return; }                         // 竖直手势 → 交回页面滚动
     }
-    if (e.cancelable) e.preventDefault();                     // 锁定后就别让页面跟着晃
+    if (e.cancelable) e.preventDefault();                      // 锁定后就别让页面跟着晃
+    const scroll = sc();
+    if (scroll) {
+      scroll.style.transition = 'none';                        // 跟手：内容 1:1 实时跟随手指
+      scroll.style.transform = 'translateX(' + dragDx(dx) + 'px)';
+    }
   }, { passive: false });
 
   document.addEventListener('touchend', function (e) {
     if (!active) return;
     active = false;
     const t = e.changedTouches && e.changedTouches[0];
-    if (!t || !locked) return;
+    if (!t || !locked) { if (locked) settle(sc()); return; }   // 没锁定=竖直手势，啥也不做
     const dx = t.clientX - sx, dy = t.clientY - sy;
-    if (Date.now() - st > SWIPE_MAX_MS) return;
-    if (Math.abs(dx) < SWIPE_MIN_DX) return;
-    if (Math.abs(dx) < Math.abs(dy) * 1.5) return;
-    _swAllow = Date.now() + 450;                              // 吞掉这一次 click
-    swipeGo(dx < 0 ? 1 : -1);
+    if (Date.now() - st > SWIPE_MAX_MS) { settle(sc()); return; }   // 慢慢拖太久不算
+    const horiz = Math.abs(dx) > Math.abs(dy) * 1.4;
+    const fast = Math.abs(dx / Math.max(1, Date.now() - st)) > 0.5;  // 快速一甩也算
+    const far = Math.abs(dx) > SWIPE_MIN_DX;
+    if (!horiz || (!far && !fast)) { settle(sc()); return; }
+    const dir = dx < 0 ? 1 : -1;                              // 左滑=下一个栏目
+    const i = curIndex();
+    if ((dir > 0 && i >= SWIPE_VIEWS.length - 1) || (dir < 0 && i <= 0)) {
+      settle(sc()); return;                                   // 已经到头，弹回
+    }
+    commit(dir, dx);
   }, { passive: true });
 
-  document.addEventListener('touchcancel', function () { active = false; });
+  // 跟手切换：同步切视图（状态立刻更新），新页从手指停住处顺势滑回正中
+  function commit(dir, dx) {
+    busy = true;
+    _swipeAnim = true;
+    _swAllow = Date.now() + 450;                              // 切完吞掉紧接着的那次 click
+    const scroll = sc();
+    swipeGo(dir);
+    if (scroll) {
+      scroll.style.transition = 'none';
+      scroll.style.transform = 'translateX(' + dx + 'px)';
+      void scroll.offsetWidth;                                // 强制重排，让下面的过渡生效
+      scroll.style.transition = 'transform .28s var(--ease-out, cubic-bezier(.22,1,.36,1))';
+      scroll.style.transform = 'translateX(0)';
+    }
+    busy = false;                       // 同步放行：下一波手势可立刻接管
+    setTimeout(function () {
+      if (scroll) { scroll.style.transition = ''; scroll.style.transform = ''; }
+      _swipeAnim = false;               // 过渡结束后才恢复 CSS 入场动画
+    }, 340);
+  }
+
+  document.addEventListener('touchcancel', function () { active = false; if (locked) settle(sc()); });
   // 滑动成功后，紧接着被抬手触发的那次点击不该生效（否则会顺手点开一个字符）
   document.addEventListener('click', function (e) {
     if (Date.now() < _swAllow) {
@@ -12109,10 +12164,8 @@ function muSwatchesHtml() {
 // ============================================================
 const WHATS_NEW = {
   items: [
-    ['🔤', '新增「替换字」', '左边菜单多了一页：输入一个字，列出长得几乎一样、码位却完全不同的字 —— 拉丁/希腊/西里尔同形字母、汉字形近字、全角半角、兼容字符，能复制也能直接对比编码'],
-    ['🥚', '彩蛋三端都能集齐了', '控制台、改网址、摇一摇、键盘、要等节日这些原本在特定设备上做不了的，现在搜索框输个暗号就能触发；图鉴里还加了全剧透的解锁方法'],
-    ['📜', '「滑到底」彩蛋修好了', '上版改成小卡片后，设置页滑到底那个彩蛋三个端都触发不了；现在主页和卡片里都能滚，输「到底了」也能解'],
-    ['📖', '仓库多了一份完整攻略', '彩蛋完整解锁方法.md 把 52 个逐条写清触发方式和替代暗号，离线照着做也能集齐']
+    ['👆', '左右滑切栏目跟手了', '在手机上左右滑切换栏目时，内容会 1:1 实时跟着手指走，松手后顺势滑入下一页或弹回；已经在第一个 / 最后一个栏目还往那个方向拽会有橡皮筋阻尼反馈'],
+    ['🤝', '更礼让系统返回手势', '屏幕最左缘（Android 13+ 的 Predictive Back 从屏幕左侧边缘往回滑）留给系统，应用内滑动从内容区任意位置起手，不再和它抢同一根手指']
   ]
 };
 
@@ -13130,7 +13183,12 @@ function renderSettingsBody() {
       <details style="margin-top:10px">
         <summary style="cursor:pointer;font-size:13px;font-weight:600;user-select:none">${ic('log')}更新日志</summary>
         <div class="app-changelog">
-          <h4>v0.2.25 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <h4>v0.2.26 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <ul>
+            <li><b>左右滑切栏目终于跟手了</b>：在手机上左右滑切换总览 / 搜索 / AI / 替换字 / 批量解析… 时，内容会 <b>1:1 实时跟着手指走</b>，不再是松手才整体滑入；松手后按滑动距离和速度决定顺势滑入下一页还是弹回，已经在第一个 / 最后一个栏目还往那个方向拽会有<b>橡皮筋阻尼</b>反馈，不会让内容飘走</li>
+            <li><b>更礼让系统返回手势</b>：屏幕最左缘那条（Android 13+ 的 Predictive Back 从屏幕左侧边缘往回滑）留给系统，应用内滑动从内容区任意位置起手，不再和它抢同一根手指</li>
+          </ul>
+          <h4>v0.2.25</h4>
           <ul>
             <li><b>新增「替换字」页</b>：菜单里多了一页，输入一个字就列出<b>肉眼几乎一样、码位完全不同</b>的字 —— 拉丁 / 希腊 / 西里尔同形字母（O / Ο / О）、汉字形近字（未末、己已巳、戌戍戊戎）、全角半角、兼容字符（Ω 与 Å）、连字符全家、看不见的空白字符。内建常见形近组，再加「全角↔半角」和「兼容分解 NFKD」两条自动规则，不联网也能查；每张卡能复制、能直接丢进字符对比看编码差多少。字符详情和字体对比弹层也加了快捷入口</li>
             <li><b>彩蛋在三个端都能集齐了</b>：以前 <code>F12 敲 eggHelp()</code>、<code>网址加 ?mode=80s</code>、<code>#unicode</code> 只有浏览器做得到（APK / EXE 是 WebView，没地址栏也没控制台），摇一摇和横屏只有手机做得到，方向键秘技和 Esc 只有带键盘的做得到，节日类还得等日子 —— 图鉴永远差几个。现在每个这类彩蛋都补了一条<b>全端替代暗号</b>，在搜索框输入即可触发，原触发方式一个没删</li>

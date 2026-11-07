@@ -1,13 +1,13 @@
 {
-  "latest": "0.2.25",
+  "latest": "0.2.26",
   "date": "2026-11-07",
-  "notes": "新增「替换字」找形近字功能（同形字母 / 汉字形近 / 全角半角 / 兼容字符，可复制可对比）；52 个彩蛋补齐全端替代暗号，网页 / 安卓 / Windows 都能集齐，图鉴内新增全剧透解锁方法；修设置小卡片后滑到底彩蛋触发不了；仓库新增《彩蛋完整解锁方法.md》。",
+  "notes": "左右滑切栏目改为跟手（内容 1:1 实时跟随手指，松手按距离/速度顺势滑入或弹回，头尾边界橡皮筋阻尼）；屏幕最左缘让给系统 Predictive Back 返回手势，应用内滑动不再和它抢。",
   "downloads": {
     "web": "https://unchaxun.pages.dev/",
-    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.25/unicode-chaxun-v0.2.25.apk",
-    "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.25/unicode-chaxun-v0.2.25.exe",
-    "apk_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.25/unicode-chaxun-v0.2.25-lite.apk",
-    "exe_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.25/unicode-chaxun-v0.2.25-lite.exe"
+    "apk": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.26/unicode-chaxun-v0.2.26.apk",
+    "exe": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.26/unicode-chaxun-v0.2.26.exe",
+    "apk_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.26/unicode-chaxun-v0.2.26-lite.apk",
+    "exe_lite": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases/download/v0.2.26/unicode-chaxun-v0.2.26-lite.exe"
   },
   "release": "https://gitee.com/i-dont-want-to-pick-a-name/unicode-chaxun/releases"
 }
