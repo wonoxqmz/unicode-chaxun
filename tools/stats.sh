@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 看匿名使用统计（key 只存本机，不进仓库）
-#   bash tools/stats.sh                 最近 14 天报表（已自动扣掉你自己的设备）
+#   bash tools/stats.sh                 最近 30 天报表（已自动扣掉你自己的设备）
 #   bash tools/stats.sh today           只看今天一行
 #   bash tools/stats.sh devices         列出见过的设备，认人是哪台
 #   bash tools/stats.sh exclude <id> [备注]  把设备加入排除名单（可多台：id 备注 id 备注…）
@@ -172,7 +172,14 @@ for k in sorted(d.get('downloadsByVersion') or {}):
     row = d['downloadsByVersion'][k]
     print('  %-8s %s' % (k, '  '.join('%s=%d' % (f, c) for f, c in sorted(row.items()))))
 print('')
-print('最近 14 天：')
+print('流量来源：')
+refs = d.get('referrers') or {}
+if not refs:
+    print('  （空）')
+for k, v in sorted(refs.items(), key=lambda kv: -kv[1]['total']):
+    print('  %-14s 今天 %d 次 / %d 台 ｜ 累计 %d 次' % (k, v['today'], v['devicesToday'], v['total']))
+print('')
+print('最近 %d 天：' % len(d['days']))
 for x in d['days']:
     bar = '#' * min(40, x['opens'])
     print('  %s  %3d 次 / %2d 台  %s' % (x['date'], x['opens'], x['devices'], bar))
