@@ -278,7 +278,8 @@ export async function onRequest(context) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return json({ error: 'bad_date' }, 400);
 
     let deleted = 0;
-    for (const prefix of ['u:' + d + ':', 'ud:' + d + ':']) {
+    const prefixes = ['u:' + d + ':', 'ud:' + d + ':', 'v:'];
+    for (const prefix of prefixes) {
       let cursor;
       for (let i = 0; i < 20; i++) {
         const page = await env.SYNC.list({ prefix, limit: 1000, cursor });
