@@ -10,38 +10,49 @@ KEY_FILE="$HOME/.workbuddy/uchx_stats_key"
 KEY=$(cat "$KEY_FILE")
 BASE="https://unchaxun.pages.dev/api/stats"
 
+fetch() {
+  curl -s --retry 3 --retry-delay 2 -m 150 "$BASE?action=summary&key=$KEY" -o _stats.json
+  head -c 1 _stats.json | grep -q '{' || {
+    echo "拿不到统计数据（网络或接口异常），原始返回："
+    head -c 200 _stats.json
+    echo
+    rm -f _stats.json
+    exit 1
+  }
+}
+
 if [ "$1" = "today" ]; then
-  curl -s --retry 3 --retry-delay 2 -m 120 "$BASE?action=summary&key=$KEY" | python -c "
-import sys, json
-raw = sys.stdin.read()
-try:/n    d = json.loads(raw)
-except Exception:/n    sys.exit("拿不到统计数据（网络或接口异常），原始返回：" + (raw[:120] or "空"))
+  fetch
+  python -c "
+import json
+d = json.load(open('_stats.json', encoding='utf-8'))
 t = d['today']
 print('%s  打开 %d 次 / %d 台设备' % (t['date'], t['opens'], t['devices']))
 "
+  rm -f _stats.json
   exit 0
 fi
 
-curl -s --retry 3 --retry-delay 2 -m 150 "$BASE?action=summary&key=$KEY" | python -c "
-import sys, json
-raw = sys.stdin.read()
-try:/n    d = json.loads(raw)
-except Exception:/n    sys.exit("拿不到统计数据（网络或接口异常），原始返回：" + (raw[:120] or "空"))
+fetch
+python -c "
+import json
+d = json.load(open('_stats.json', encoding='utf-8'))
 t = d['today']
 print('今天 %s：打开 %d 次，活跃设备 %d 台' % (t['date'], t['opens'], t['devices']))
 print('近 7 天打开合计 %d 次 ｜ 累计出现过的设备 %d 台' % (d['last7daysOpens'], d['devicesTotal']))
-print()
+print('')
 print('版本分布：')
 for k in sorted(d.get('versions') or {}):
     print('  %-8s %d 次' % (k, d['versions'][k]))
-print()
+print('')
 print('各版本下载：')
 for k in sorted(d.get('downloadsByVersion') or {}):
     row = d['downloadsByVersion'][k]
     print('  %-8s %s' % (k, '  '.join('%s=%d' % (f, c) for f, c in sorted(row.items()))))
-print()
+print('')
 print('最近 14 天：')
 for x in d['days']:
     bar = '#' * min(40, x['opens'])
     print('  %s  %3d 次 / %2d 台  %s' % (x['date'], x['opens'], x['devices'], bar))
 "
+rm -f _stats.json
