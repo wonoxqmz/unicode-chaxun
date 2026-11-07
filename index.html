@@ -2702,7 +2702,7 @@ function eggGuideOpen() {
     + '懒得输暗号也行，每条右边都有「直接玩一次」，点一下同样算发现。</p>'
     + '<div class="egg-progress"><i style="width:' + Math.round(n * 100 / EGGS.length) + '%"></i></div>'
     + '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">已发现 <b style="color:var(--accent)">' + n + '</b> / ' + EGGS.length
-    + '　·　仓库里还有一份同款 <b>彩蛋完整解锁方法.md</b>，离线也能照着做</div>';
+    + '　·　下面就是全部解法</div>';
   for (var c = 0; c < EGG_CATS.length; c++) {
     var cat = EGG_CATS[c];
     html += '<div style="margin-top:13px;font-size:12px;font-weight:700;color:var(--muted)">' + cat + '</div>';
@@ -4563,7 +4563,7 @@ function wordDictOnLoaded() {
 
 
 // ===== 应用版本 =====
-const APP_VERSION = '0.2.26';
+const APP_VERSION = '0.2.27';
 const APP_UNICODE_VERSION = '17.0';   // 内置区块数据版本
 
 // 更新检查用的版本清单（静态 JSON，由 Cloudflare Pages 托管，仓库根目录 version.json）
@@ -12164,8 +12164,9 @@ function muSwatchesHtml() {
 // ============================================================
 const WHATS_NEW = {
   items: [
-    ['👆', '左右滑切栏目跟手了', '在手机上左右滑切换栏目时，内容会 1:1 实时跟着手指走，松手后顺势滑入下一页或弹回；已经在第一个 / 最后一个栏目还往那个方向拽会有橡皮筋阻尼反馈'],
-    ['🤝', '更礼让系统返回手势', '屏幕最左缘（Android 13+ 的 Predictive Back 从屏幕左侧边缘往回滑）留给系统，应用内滑动从内容区任意位置起手，不再和它抢同一根手指']
+    ['📖', '图鉴就是攻略本', '图鉴里「📖 完整解锁方法（全剧透）」52 条逐条列出触发方式、线索、替代暗号，每条带「直接玩一次」，任何设备都能一个不漏地解完'],
+    ['🧹', '仓库里不再有答案表', '那份全剧透的 <b>彩蛋完整解锁方法.md</b> 已从公开仓库移出，只留本地；翻源码的人不会一眼看到全部解法'],
+    ['✍️', '说明文案收干净', '图鉴底部原来那句「仓库里还有一份同款 md」改成「下面就是全部解法」，不再指向一个已经不在仓库的文件']
   ]
 };
 
@@ -13183,7 +13184,12 @@ function renderSettingsBody() {
       <details style="margin-top:10px">
         <summary style="cursor:pointer;font-size:13px;font-weight:600;user-select:none">${ic('log')}更新日志</summary>
         <div class="app-changelog">
-          <h4>v0.2.26 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <h4>v0.2.27 <span style="color:var(--muted);font-weight:400;font-size:11px">当前版本</span></h4>
+          <ul>
+            <li><b>图鉴攻略说明收干净</b>：图鉴里「已发现 N / 52」下面那句「仓库里还有一份同款 <code>彩蛋完整解锁方法.md</code>」去掉了 —— 那份离线攻略已从公开仓库移出（只留本地），应用内图鉴的「📖 完整解锁方法（全剧透）」才是唯一入口，52 个逐条带「直接玩一次」</li>
+            <li><b>仓库缩水</b>：公开仓库里不再有全剧透答案表，翻源码的人不会一眼看到全部解法</li>
+          </ul>
+          <h4>v0.2.26</h4>
           <ul>
             <li><b>左右滑切栏目终于跟手了</b>：在手机上左右滑切换总览 / 搜索 / AI / 替换字 / 批量解析… 时，内容会 <b>1:1 实时跟着手指走</b>，不再是松手才整体滑入；松手后按滑动距离和速度决定顺势滑入下一页还是弹回，已经在第一个 / 最后一个栏目还往那个方向拽会有<b>橡皮筋阻尼</b>反馈，不会让内容飘走</li>
             <li><b>更礼让系统返回手势</b>：屏幕最左缘那条（Android 13+ 的 Predictive Back 从屏幕左侧边缘往回滑）留给系统，应用内滑动从内容区任意位置起手，不再和它抢同一根手指</li>
