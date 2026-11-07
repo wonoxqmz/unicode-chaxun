@@ -224,20 +224,23 @@ export async function onRequest(context) {
     const exSet2 = excludedSet(await loadExclude(env.SYNC));
     const list = [];
     let cursor;
+    // 扫 i:<hash>（设备首见的日期，不过期）—— 改造前的老设备也能列出来
     for (let i = 0; i < 10; i++) {
-      const page = await env.SYNC.list({ prefix: 'ui:', limit: 1000, cursor });
+      const page = await env.SYNC.list({ prefix: 'i:', limit: 1000, cursor });
       for (const k of page.keys) {
-        const h = k.name.slice(3);
+        const h = k.name.slice(2);
+        const firstDate = (await env.SYNC.get(k.name)) || '';
         let meta = {};
-        try { meta = JSON.parse((await env.SYNC.get(k.name)) || '{}') || {}; } catch { meta = {}; }
+        try { meta = JSON.parse((await env.SYNC.get('ui:' + h)) || '{}') || {}; } catch { meta = {}; }
         list.push({
           id: h,
           short: h.slice(0, 8),
           platform: meta.p || '',
           version: meta.v || '',
-          first: meta.first || '',
+          first: meta.first || firstDate,
           last: meta.last || '',
           opens: parseInt(meta.n, 10) || 0,
+          hasProfile: !!meta.p,
           excluded: exSet2.has(h),
         });
       }
