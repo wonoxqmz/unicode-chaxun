@@ -3,7 +3,7 @@
 #   bash tools/stats.sh                 最近 14 天报表（已自动扣掉你自己的设备）
 #   bash tools/stats.sh today           只看今天一行
 #   bash tools/stats.sh devices         列出见过的设备，认人是哪台
-#   bash tools/stats.sh exclude <id>    把设备加入排除名单（可多个，空格隔开）
+#   bash tools/stats.sh exclude <id> [备注]  把设备加入排除名单（可多台：id 备注 id 备注…）
 #   bash tools/stats.sh exclude --list  看当前排除名单
 #   bash tools/stats.sh exclude --clear 清空排除名单
 #   bash tools/stats.sh reset [YYYY-MM-DD]  清掉某天（默认今天）的打开数据
@@ -50,23 +50,23 @@ print('')
 if not rows:
     print('  还没有设备上报过（0.2.30 起才开始打点）')
 else:
-    print('  %-22s %-10s %-8s %6s  %-11s %-11s %s' % ('设备ID', '平台', '版本', '打开', '首见', '最近', '状态'))
+    print('  %-22s %-9s %-7s %5s  %-11s %-12s %s' % ('设备ID', '平台', '版本', '打开', '首见', '备注', '状态'))
     for r in rows:
         st = []
         if r.get('excluded'):
             st.append('已排除')
         if not r.get('hasProfile'):
             st.append('旧版上报')
-        print('  %-22s %-10s %-8s %6d  %-11s %-11s %s' % (
+        print('  %-22s %-9s %-7s %5d  %-11s %-12s %s' % (
             r.get('id', ''),
             r.get('platform') or '-',
             r.get('version') or '-',
             r.get('opens') or 0,
             r.get('first') or '-',
-            r.get('last') or '-',
+            r.get('note') or '-',
             ' '.join(st)))
 print('')
-print('排除自己的设备：bash tools/stats.sh exclude <上面完整的设备ID>')
+print('排除自己的设备：bash tools/stats.sh exclude <完整设备ID> [备注]')
 "
     rm -f _devs.json
     ;;
@@ -94,26 +94,38 @@ for x in ex:
         exit 0
         ;;
     esac
-    # 追加：先读现有，再合并写回
-    for a in "$@"; do
-      if [ "${#a}" -lt 20 ]; then
-        echo "!! 设备ID不完整：$a"
-        echo "   要用 devices 里那串完整的 20 位（短了服务端匹配不上，等于没排除）"
-        exit 1
-      fi
-    done
+    # 追加：参数里 20 位以上 hex 当设备ID，紧随其后的文字当备注
     api "action=exclude&key=$KEY" _ex.json
-    "$PY" -c "
-import json, sys
-d = json.load(open('_ex.json', encoding='utf-8'))
-cur = [x['id'] for x in (d.get('excluded') or [])]
-add = sys.argv[1:]
-merged = cur + [a for a in add if a not in cur]
-print(','.join(merged) + '\n', end='')
-" "$@" > _exids.txt
-    IDS=$(cat _exids.txt)
-    api "action=exclude&key=$KEY&set=$IDS" _ex.json
-    rm -f _ex.json _exids.txt
+    IDS=$("$PY" -c "
+import json, re, sys
+cur = json.load(open('_ex.json', encoding='utf-8')).get('excluded') or []
+m = {x['id']: (x.get('note') or '') for x in cur}
+last = None
+for a in sys.argv[1:]:
+    a = a.strip()
+    if not a:
+        continue
+    if re.fullmatch(r'[a-f0-9]{8,40}', a):
+        m.setdefault(a, '')
+        last = a
+    elif last:
+        m[last] = a[:20]
+print(','.join(('%s|%s' % (k, v)) if v else k for k, v in m.items()), end='')
+" "$@")
+
+    if [ -z "$IDS" ]; then
+      echo "!! 没给设备ID。用法：bash tools/stats.sh exclude <完整设备ID> [备注]"
+      rm -f _ex.json
+      exit 1
+    fi
+
+    curl -s --retry 3 --retry-delay 2 -m 150 -G "$BASE" \
+      --data-urlencode "action=exclude" \
+      --data-urlencode "key=$KEY" \
+      --data-urlencode "set=$IDS" \
+      -o _ex.json
+    head -c 1 _ex.json | grep -q '{' || { echo "写入失败："; head -c 200 _ex.json; echo; rm -f _ex.json; exit 1; }
+    rm -f _ex.json
     echo "已更新排除名单"
     "$0" exclude --list
     ;;

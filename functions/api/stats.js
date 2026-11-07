@@ -221,7 +221,8 @@ export async function onRequest(context) {
     const bad = authFail(env, url);
     if (bad) return bad;
 
-    const exSet2 = excludedSet(await loadExclude(env.SYNC));
+    const exList2 = await loadExclude(env.SYNC);
+    const exMap = new Map(exList2.map(x => [x.id, x.note || '']));
     const list = [];
     let cursor;
     // 扫 i:<hash>（设备首见的日期，不过期）—— 改造前的老设备也能列出来
@@ -241,7 +242,8 @@ export async function onRequest(context) {
           last: meta.last || '',
           opens: parseInt(meta.n, 10) || 0,
           hasProfile: !!meta.p,
-          excluded: exSet2.has(h),
+          note: exMap.get(h) || '',
+          excluded: exMap.has(h),
         });
       }
       if (page.list_complete) break;
@@ -259,12 +261,19 @@ export async function onRequest(context) {
     const set = url.searchParams.get('set');
     if (set === null) return json({ ok: true, excluded: await loadExclude(env.SYNC) });
 
-    const ids = Array.from(new Set(
-      set.split(',').map(s => s.trim()).filter(s => /^[a-f0-9]{8,40}$/.test(s))
-    ));
-    const note = (url.searchParams.get('note') || '').slice(0, 40);
+    // 支持 "id|备注" 写法；不带备注时用整体 note 参数
+    const fallbackNote = (url.searchParams.get('note') || '').slice(0, 20);
+    const entries = new Map();
+    for (const raw of set.split(',')) {
+      const s = raw.trim();
+      if (!s) continue;
+      const cut = s.indexOf('|');
+      const id = (cut >= 0 ? s.slice(0, cut) : s).trim();
+      const note = (cut >= 0 ? s.slice(cut + 1) : fallbackNote).trim().slice(0, 20);
+      if (/^[a-f0-9]{8,40}$/.test(id)) entries.set(id, note);
+    }
     const at = today();
-    const arr = ids.map(id => ({ id, note, at }));
+    const arr = Array.from(entries.entries()).map(([id, note]) => ({ id, note, at }));
     await env.SYNC.put(EXCLUDE_KEY, JSON.stringify(arr));
     return json({ ok: true, excluded: arr });
   }
